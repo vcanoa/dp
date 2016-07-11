@@ -52,10 +52,8 @@ mDSTanalysis::mDSTanalysis(const char *outfile, const char* lookup_file) :
 {
   fFile = NULL;
   fTree = TTree("T","a tree with my events from Run14AuAu");
-  fCentrality = NULL;
   fReconstruction = Reconstruction();
   fEvent = PhotonEvent();
-  fRunNumber = 0;
   fOutFileName = outfile;
   fLookupFileName = lookup_file;
   return;
@@ -64,7 +62,6 @@ mDSTanalysis::mDSTanalysis(const char *outfile, const char* lookup_file) :
 mDSTanalysis::~mDSTanalysis()
 {
   if(fFile) delete fFile;
-  if(fCentrality) delete fCentrality;
 }
 //=============================================================
 int mDSTanalysis::Init(PHCompositeNode *)

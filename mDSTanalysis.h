@@ -42,22 +42,9 @@ class mDSTanalysis: public SubsysReco {
  protected:   
   TFile *fFile;
   TTree fT;
-  CentralityReco *fCentrality;
-  Reconstruction fReconstruction;
+ 
   PhotonEvent fEvent;
-  MyCut *fCut;
-  
-  PHGlobal* phg;
-  TrigLvl1* _Trig_ptr;    
-  PHCentralTrack* trk;
-  emcClusterContainer* emccont;
-  emcClusterContent* emc;
-  ReactionPlaneObject* rp;
-  ReactionPlaneSngl* rpsngl;
-  RunHeader* header;
-  
-  int fRunNumber;
-  int fPairCutSelection; // if ( paircutselection == 1 ) apply all pair cuts
+  Reconstruction *fReconstruction;
   
   TString fOutFileName;
   TString fLookupFileName; 
