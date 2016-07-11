@@ -1,5 +1,4 @@
 #include "Reconstruction.h"
-#include "MyEvent.h"
 #include <TFile.h>
 #include <TNtuple.h>
 #include <TMatrixD.h>
@@ -8,91 +7,86 @@
 
 using namespace std;
 
-namespace DPRun16dAu
-{
-
 struct PointValue_3x3
 {
-	float x,y,z;// independent variables
-	float dep[3];// dependent variables
-	PointValue_3x3(float X, float Y, float Z, float A, float B, float C) : x(X), y(Y), z(Z)
-	{
-		dep[0] = A;
-		dep[1] = B;
-		dep[2] = C;
-	}
-	PointValue_3x3(){}
-	PointValue_3x3( PointValue_3x3 const& other )
-	{
-		x = other.x;
-		y = other.y;
-		z = other.z;
-		dep[0] = other.dep[0];
-		dep[1] = other.dep[1];
-		dep[2] = other.dep[2];
-	}
+  float x,y,z;// independent variables
+  float dep[3];// dependent variables
+  PointValue_3x3(float X, float Y, float Z, float A, float B, float C) : x(X), y(Y), z(Z)
+  {
+    dep[0] = A;
+    dep[1] = B;
+    dep[2] = C;
+  }
+  PointValue_3x3(){}
+  PointValue_3x3( PointValue_3x3 const& other )
+  {
+    x = other.x;
+    y = other.y;
+    z = other.z;
+    dep[0] = other.dep[0];
+    dep[1] = other.dep[1];
+    dep[2] = other.dep[2];
+  }
 };
 
+class PointVal3x3Sorted {
+protected:
+  float x_lo, x_hi;
+  float y_lo, y_hi;
+  float z_lo, z_hi;
+  
+  int level;
+  int maxlevel;
 
-class PointVal3x3Sorted
-{
-  protected:
-    float x_lo, x_hi;
-    float y_lo, y_hi;
-    float z_lo, z_hi;
+  PointVal3x3Sorted* containers[2][2][2];
 
-    int level;
-    int maxlevel;
-
-    PointVal3x3Sorted* containers[2][2][2];
-
-    public:
-      PointVal3x3Sorted( float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI, int MLEV, int LEV=0 ) : x_lo(X_LO), x_hi(X_HI), y_lo(Y_LO), y_hi(Y_HI), z_lo(Z_LO), z_hi(Z_HI), level(LEV), maxlevel(MLEV)
-      {
-        for(unsigned int i=0;i<2;++i){for(unsigned int j=0;j<2;++j){for(unsigned int k=0;k<2;++k){containers[i][j][k]=NULL;}}}
-      }
-      virtual ~PointVal3x3Sorted()
-      {
-        for(unsigned int i=0;i<2;++i){
-          for(unsigned int j=0;j<2;++j){
-          	for(unsigned int k=0;k<2;++k){
-              if(containers[i][j][k]!=NULL)
-              {
-                delete containers[i][j][k];
-              }}}}
-      }
-      virtual bool insert( PointValue_3x3 const& point );
-      virtual void append_list( vector<PointValue_3x3>& point_list, float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI )
-      {
-        for(unsigned int i=0;i<2;++i){
-          for(unsigned int j=0;j<2;++j){
-          	for(unsigned int k=0;k<2;++k){
-              if(containers[i][j][k]==NULL){continue;}
-              if( (containers[i][j][k]->x_hi<X_LO) || (containers[i][j][k]->x_lo>X_HI) || (containers[i][j][k]->y_hi<Y_LO) || (containers[i][j][k]->y_lo>Y_HI) || (containers[i][j][k]->z_hi<Z_LO) || (containers[i][j][k]->z_lo>Z_HI) ){continue;}
-              containers[i][j][k]->append_list( point_list, X_LO, X_HI, Y_LO, Y_HI, Z_LO, Z_HI );}}}
-      }
+public:
+  PointVal3x3Sorted( float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI, int MLEV, int LEV=0 ) : x_lo(X_LO), x_hi(X_HI), y_lo(Y_LO), y_hi(Y_HI), z_lo(Z_LO), z_hi(Z_HI), level(LEV), maxlevel(MLEV)
+  {
+    for(unsigned int i=0;i<2;++i){for(unsigned int j=0;j<2;++j){for(unsigned int k=0;k<2;++k){containers[i][j][k]=NULL;}}}
+  }
+  virtual ~PointVal3x3Sorted()
+  {
+    for(unsigned int i=0;i<2;++i){
+      for(unsigned int j=0;j<2;++j){
+	for(unsigned int k=0;k<2;++k){
+	  if(containers[i][j][k]!=NULL)
+	    {
+	      delete containers[i][j][k];
+	    }}}}
+  }
+  virtual bool insert( PointValue_3x3 const& point );
+  virtual void append_list( vector<PointValue_3x3>& point_list, float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI )
+  {
+    for(unsigned int i=0;i<2;++i){
+      for(unsigned int j=0;j<2;++j){
+	for(unsigned int k=0;k<2;++k){
+	  if(containers[i][j][k]==NULL){continue;}
+	  if( (containers[i][j][k]->x_hi<X_LO) || (containers[i][j][k]->x_lo>X_HI) || (containers[i][j][k]->y_hi<Y_LO) || (containers[i][j][k]->y_lo>Y_HI) || (containers[i][j][k]->z_hi<Z_LO) || (containers[i][j][k]->z_lo>Z_HI) ){continue;}
+	  containers[i][j][k]->append_list( point_list, X_LO, X_HI, Y_LO, Y_HI, Z_LO, Z_HI );}}}
+  }
 };
 
 class PointVal3x3SortedEnd : public PointVal3x3Sorted
 {
-  public:
-    PointVal3x3SortedEnd( float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI, int MLEV, int LEV=0 ) : PointVal3x3Sorted( X_LO,X_HI,Y_LO,Y_HI,Z_LO,Z_HI,MLEV,LEV ){}
-    virtual ~PointVal3x3SortedEnd(){}
-    virtual bool insert( PointValue_3x3 const& point )
-    {
-      points.push_back(point);
-      return true;
-    }
-    virtual void append_list( vector<PointValue_3x3>& point_list, float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI )
-    {
-      for(unsigned int i=0;i<points.size();++i)
+public:
+  PointVal3x3SortedEnd( float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI, int MLEV, int LEV=0 ) : PointVal3x3Sorted( X_LO,X_HI,Y_LO,Y_HI,Z_LO,Z_HI,MLEV,LEV ){}
+  virtual ~PointVal3x3SortedEnd(){}
+  virtual bool insert( PointValue_3x3 const& point )
+  {
+    points.push_back(point);
+    return true;
+  }
+  virtual void append_list( vector<PointValue_3x3>& point_list, float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI )
+  {
+    for(unsigned int i=0;i<points.size();++i)
       {
         if( (points[i].x<X_LO) || (points[i].x>X_HI) || (points[i].y<Y_LO) || (points[i].y>Y_HI) || (points[i].z<Z_LO) || (points[i].z>Z_HI) ){continue;}
         point_list.push_back( points[i] );
       }
-    }
-  protected:
-    vector<PointValue_3x3> points;
+  }
+protected:
+  vector<PointValue_3x3> points;
 };
 
 bool PointVal3x3Sorted::insert( PointValue_3x3 const& point )
@@ -101,7 +95,7 @@ bool PointVal3x3Sorted::insert( PointValue_3x3 const& point )
   {
     return false;
   }
-
+  
   int x_ind = 0;
   if(point.x > (x_lo + 0.5*(x_hi-x_lo))){x_ind=1;}
   int y_ind = 0;
@@ -135,49 +129,48 @@ bool PointVal3x3Sorted::insert( PointValue_3x3 const& point )
 
 class Reconstruction::impl
 {
-	public:
-		impl( const char* lookup_file_name ) : alpha_r_z( 0., 0.7, 0., 150., 0., 100., 10 )
-		{
-			TFile f(lookup_file_name);
-			TNtuple* t=0;
-			f.GetObject("alpha_p_r_phi_theta_z", t);
-			float alpha, p, r, phi, theta, z;
-			t->SetBranchAddress("alpha",&alpha);
-			t->SetBranchAddress("p",&p);
-			t->SetBranchAddress("r",&r);
-			t->SetBranchAddress("phi",&phi);
-			t->SetBranchAddress("theta",&theta);
-			t->SetBranchAddress("z",&z);
-			for(int i=0;i<t->GetEntries();i+=1)
-			{
-				t->GetEntry(i);
-
-				if ( z < 0.) continue;
-				if ( alpha > 0. ) continue;
-				if ( phi < 0. || phi > TMath::Pi() ) continue;
-				if ( theta < 0. ) continue;
-
-				PointValue_3x3 point(TMath::Abs(alpha),r,TMath::Abs(z), TMath::Abs(phi), p, TMath::Abs(theta));
-				alpha_r_z.insert(point);
-			}
-			f.Close();
-		}
-
-		PointVal3x3Sorted alpha_r_z;
+public:
+  impl( const char* lookup_file_name ) : alpha_r_z( 0., 0.7, 0., 150., 0., 100., 10 )
+  {
+    TFile f(lookup_file_name);
+    TNtuple* t=0;
+    f.GetObject("alpha_p_r_phi_theta_z", t);
+    float alpha, p, r, phi, theta, z;
+    t->SetBranchAddress("alpha",&alpha);
+    t->SetBranchAddress("p",&p);
+    t->SetBranchAddress("r",&r);
+    t->SetBranchAddress("phi",&phi);
+    t->SetBranchAddress("theta",&theta);
+    t->SetBranchAddress("z",&z);
+    for(int i=0;i<t->GetEntries();i+=1)
+      {
+	t->GetEntry(i);
+	
+	if ( z < 0.) continue;
+	if ( alpha > 0. ) continue;
+	if ( phi < 0. || phi > TMath::Pi() ) continue;
+	if ( theta < 0. ) continue;
+	
+	PointValue_3x3 point(TMath::Abs(alpha),r,TMath::Abs(z), TMath::Abs(phi), p, TMath::Abs(theta));
+	alpha_r_z.insert(point);
+      }
+    f.Close();
+  }
+  
+  PointVal3x3Sorted alpha_r_z;
 };
+
+
 
 Reconstruction::Reconstruction( const char* lookup_file_name )
 {
-	pimpl = new impl(lookup_file_name);
+  pimpl = new impl(lookup_file_name);
 }
 
 Reconstruction::~Reconstruction()
 {
-	delete pimpl;
+  delete pimpl;
 }
-
-
-
 
 static const float max_r = 30.;
 static const float lookup_alpha_delta_base = 0.01;
@@ -186,69 +179,69 @@ static const float lookup_z_delta_base = 4.0;
 
 static float evaluate_fit( TMatrixD& beta, float alpha, float r, float z_DC_m_z_ver )
 {
-	float retval = 0.;
-	retval += beta(0,0);
-	retval += beta(1,0)*alpha;
-	retval += beta(2,0)*r;
-	retval += beta(3,0)*z_DC_m_z_ver;
-	retval += beta(4,0)*alpha*alpha;
-	retval += beta(5,0)*alpha*r;
-	retval += beta(6,0)*alpha*z_DC_m_z_ver;
-	retval += beta(7,0)*r*r;
-	retval += beta(8,0)*r*z_DC_m_z_ver;
-	retval += beta(9,0)*z_DC_m_z_ver*z_DC_m_z_ver;
-
-	return retval;
+  float retval = 0.;
+  retval += beta(0,0);
+  retval += beta(1,0)*alpha;
+  retval += beta(2,0)*r;
+  retval += beta(3,0)*z_DC_m_z_ver;
+  retval += beta(4,0)*alpha*alpha;
+  retval += beta(5,0)*alpha*r;
+  retval += beta(6,0)*alpha*z_DC_m_z_ver;
+  retval += beta(7,0)*r*r;
+  retval += beta(8,0)*r*z_DC_m_z_ver;
+  retval += beta(9,0)*z_DC_m_z_ver*z_DC_m_z_ver;
+  
+  return retval;
 }
 
 static void remove_outliers( int ind, TMatrixD& beta, vector<PointValue_3x3>& points_temp, vector<PointValue_3x3>& points )
 {
-	points.clear();
+  points.clear();
 
-	float sig = 0.;
-	for( unsigned int i=0; i<points_temp.size(); ++i )
-	{
-		float fval = evaluate_fit( beta, points_temp[i].x, points_temp[i].y, points_temp[i].z );
-		sig += ( fval - points_temp[i].dep[ind] )*( fval - points_temp[i].dep[ind] );
-	}
-	sig /= ((float)(points_temp.size()));
-	sig = sqrt(sig);
-
-	for( unsigned int i=0; i<points_temp.size(); ++i )
-	{
-		float fval = evaluate_fit( beta, points_temp[i].x, points_temp[i].y, points_temp[i].z );
-		if( fabs( fval - points_temp[i].dep[ind] ) < 3.*sig ){points.push_back(points_temp[i]);}
-	}
+  float sig = 0.;
+  for( unsigned int i=0; i<points_temp.size(); ++i )
+    {
+      float fval = evaluate_fit( beta, points_temp[i].x, points_temp[i].y, points_temp[i].z );
+      sig += ( fval - points_temp[i].dep[ind] )*( fval - points_temp[i].dep[ind] );
+    }
+  sig /= ((float)(points_temp.size()));
+  sig = sqrt(sig);
+  
+  for( unsigned int i=0; i<points_temp.size(); ++i )
+    {
+      float fval = evaluate_fit( beta, points_temp[i].x, points_temp[i].y, points_temp[i].z );
+      if( fabs( fval - points_temp[i].dep[ind] ) < 3.*sig ){points.push_back(points_temp[i]);}
+    }
 }
 
 TMatrixD perform_fit( int ind, vector<PointValue_3x3> const& points )
 {
-	TMatrixD X( points.size(), 10 );
-	TMatrixD y( points.size(), 1  );
-	for(unsigned int i=0;i<points.size();i+=1)
-	{
-		y(i,0) = points[i].dep[ind];
-		X(i,0) = 1.;
-		X(i,1) = points[i].x;
-		X(i,2) = points[i].y;
-		X(i,3) = points[i].z;
-		X(i,4) = points[i].x * points[i].x;
-		X(i,5) = points[i].x * points[i].y;
-		X(i,6) = points[i].x * points[i].z;
-		X(i,7) = points[i].y * points[i].y;
-		X(i,8) = points[i].y * points[i].z;
-		X(i,9) = points[i].z * points[i].z;
-	}
-
-	TMatrixD Xt( 10, points.size() );
-	Xt.Transpose(X);
-
-	TMatrixD XtX = Xt * X;
-	XtX.Invert();
-
-	TMatrixD beta = XtX * (Xt * y);
-
-	return beta;
+  TMatrixD X( points.size(), 10 );
+  TMatrixD y( points.size(), 1  );
+  for(unsigned int i=0;i<points.size();i+=1)
+    {
+      y(i,0) = points[i].dep[ind];
+      X(i,0) = 1.;
+      X(i,1) = points[i].x;
+      X(i,2) = points[i].y;
+      X(i,3) = points[i].z;
+      X(i,4) = points[i].x * points[i].x;
+      X(i,5) = points[i].x * points[i].y;
+      X(i,6) = points[i].x * points[i].z;
+      X(i,7) = points[i].y * points[i].y;
+      X(i,8) = points[i].y * points[i].z;
+      X(i,9) = points[i].z * points[i].z;
+    }
+  
+  TMatrixD Xt( 10, points.size() );
+  Xt.Transpose(X);
+  
+  TMatrixD XtX = Xt * X;
+  XtX.Invert();
+  
+  TMatrixD beta = XtX * (Xt * y);
+  
+  return beta;
 }
 
 
