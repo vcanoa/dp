@@ -26,7 +26,7 @@ class CNTDE {
   float GetPid()    const { return fPid; }
   
   void SetEphi(float val)   { fEphi = val; }
-  void SetPehi(float val)   { fPphi = val; }
+  void SetPphi(float val)   { fPphi = val; }
   void SetEtheta(float val) { fEtheta = val; }
   void SetPtheta(float val) { fPtheta = val; }
   void SetR(float val)      { fR = val; }
