@@ -58,10 +58,10 @@ class PhotonEvent : public TObject  {
   int GetNpairs()    { return fDE.size(); };
   int GetNclusters() { return fEMCC.size(); };
   
-  CNTE&  GetPtrack(int i) { return fP[i]; };
-  CNTE&  GetNtrack(int i) { return fN[i]; };
-  EMCC& GetCluster(int i) { return fEMCC[i]; };
-  CNTDE& GetPair(int i)   { return fDE[i]; };
+  CNTE*  GetPtrack(int i) { return &(fP[i]); };
+  CNTE*  GetNtrack(int i) { return &(fN[i]); };
+  EMCC*  GetCluster(int i){ return &(fEMCC[i]); };
+  CNTDE* GetPair(int i)   { return &(fDE[i]); };
   
   vector<CNTE>  GetPTracks()  { return fP; };
   vector<CNTE>  GetNTracks()  { return fN; };

@@ -12,9 +12,7 @@
 
 #include "PHCompositeNode.h"
 #include "PHIODataNode.h"
-#include "MyEvent.h"
 #include "Reconstruction.h"
-#include "MyCut.h"
 #include "mDSTanalysis.h"
 
 #include "phool.h"
@@ -47,12 +45,12 @@
 #include "emcClusterContent.h"
 
 //=============================================================
-mDSTanalysis::mDSTanalysis(const char *outfile, const char* lookup_file) : 
+mDSTanalysis::mDSTanalysis(char *outfile, char* lookup_file) : 
   SubsysReco("mDSTanalysis")
 {
   fFile = NULL;
   fTree = TTree("T","a tree with my events from Run14AuAu");
-  fReconstruction = Reconstruction();
+  fReconstruction = new Reconstruction();
   fEvent = PhotonEvent();
   fOutFileName = outfile;
   fLookupFileName = lookup_file;
@@ -145,8 +143,8 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
     track.SetEMCx( cnttrk->get_pemcx(t) );
     track.SetEMCy( cnttrk->get_pemcy(t) );
     track.SetEMCz( cnttrk->get_pemcz(t) );
-    track.SetCenterphi( cnttrk->get_center_phi(t) );
-    track.SetCenterz( cnttrk->get_center_z(t) );
+    track.SetCenterPhi( cnttrk->get_center_phi(t) );
+    track.SetCenterZ( cnttrk->get_center_z(t) );
     track.SetPPC1x( cnttrk->get_ppc1y(t) );
     track.SetPPC1y( cnttrk->get_ppc1x(t) );
     track.SetPPC1z( cnttrk->get_ppc1z(t) );
@@ -164,10 +162,11 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
 
   // PAIRS
   CNTE *ele, *pos;
-  for(int in=0; in!=fEvent.GetNETracks(); ++in) // electrons
-    for(int ip=0; ip!=fEvents.GetNPTracks(); ++ip) { // positrons
-      ele = fEvent.GetNTrack(in); // get electron
-      pos = fEvent.GetPTrack(ip); // get positron
+  bool atLeastOneFound = false;
+  for(int in=0; in!=fEvent.GetNEtracks(); ++in) // electrons
+    for(int ip=0; ip!=fEvent.GetNPtracks(); ++ip) { // positrons
+      ele = fEvent.GetNtrack(in); // get electron
+      pos = fEvent.GetPtrack(ip); // get positron
       CNTDE de; // dielectron
       fReconstruction->findIntersection(ele,pos,de,fEvent.GetVtxZ()); // FIXME vertexZ
 
@@ -179,7 +178,7 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
 
   // CLUSTERS
   for(int c=0; c!=int( emcclu->size() ); ++c) {
-    emc = emcclu->getCluster(c);
+    emcClusterContent *emc = emcclu->getCluster(c);
     EMCC cluster;
     cluster.SetArm( emc->arm() );
     cluster.SetID( emc->id() );
@@ -193,7 +192,7 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
 
     // CLUSTER CUTS
 
-    event.AddCluster( cluster );
+    fEvent.AddCluster( cluster );
   }
 
   fTree.Fill();

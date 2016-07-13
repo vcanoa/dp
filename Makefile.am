@@ -14,7 +14,7 @@ EMCC.h \
 CNTE.h \
 CNTDE.h \
 Reconstruction.h \
-RDanalyzer.h
+mDSTanalysis.h
 
 libDPRun16dAu_la_SOURCES = \
 PhotonEvent.cxx \
@@ -22,6 +22,7 @@ EMCC.cxx \
 CNTE.cxx \
 CNTDE.cxx \
 Reconstruction.cpp \
+mDSTanalysis.cxx \
 DPRun16dAu_Dict.C 
 
 libDPRun16dAu_la_LIBADD = \
@@ -49,6 +50,7 @@ DPRun16dAu_Dict.C: \
   CNTE.h \
   CNTDE.h \
   Reconstruction.h \
+  mDSTanalysis.h \
   DPRun16dAuLinkDef.h 
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

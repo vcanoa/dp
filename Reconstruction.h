@@ -6,22 +6,24 @@
 #include "TVector3.h"
 #include "TMatrixD.h"
 
+#include "CNTE.h"
+#include "CNTDE.h"
+
 using namespace std;
 
 //======================
 class P33 {
- protected:
+ public:
   float fX;
   float fY;
   float fZ;
   float fDep[3];
- public:
   P33(float X, float Y, float Z, float A, float B, float C);
   P33( P33 const& other );
 };
 //======================
 class P33_S {
- protected:
+ public:
   float fX_lo;
   float fX_hi;
   float fY_lo;
@@ -31,14 +33,13 @@ class P33_S {
   int fLevel;
   int fMaxLevel;
   P33_S *fContainers[2][2][2];
- public:
   P33_S(float X_LO, float X_HI, float Y_LO, float Y_HI,
 	float Z_LO, float Z_HI, int MLEV, int LEV=0);
   virtual ~P33_S();
   virtual bool Insert( P33 const& point );
-  virtual void Append_list(vector<P33>& point_list,
-			   float X_LO, float X_HI, float Y_LO, float Y_HI,
-			   float Z_LO, float Z_HI);
+  virtual void AppendList(vector<P33>& point_list,
+			  float X_LO, float X_HI, float Y_LO, float Y_HI,
+			  float Z_LO, float Z_HI);
 };
 //======================
 class P33_SE : public P33_S {
@@ -47,10 +48,9 @@ class P33_SE : public P33_S {
 	  float Z_LO, float Z_HI, int MLEV, int LEV=0 );
   virtual ~P33_SE();
   virtual bool Insert( P33 const& point );
-  virtual void Append_list( vector<P33>& point_list,
-			    float X_LO, float X_HI, float Y_LO, float Y_HI,
-			    float Z_LO, float Z_HI );
- protected:
+  virtual void AppendList( vector<P33>& point_list,
+			   float X_LO, float X_HI, float Y_LO, float Y_HI,
+			   float Z_LO, float Z_HI );
   vector<P33> fPoints;
 };
 //======================
@@ -62,6 +62,12 @@ class LUT {
 //======================
 class Reconstruction {
  public:
+  float fMaxR;
+  float fLookupAlphaDeltaBase;
+  float fLookupRDeltaBase;
+  float fLookupZDeltaBase;
+  Reconstruction();
+  Reconstruction(Reconstruction const&);
   Reconstruction( const char* lookup_file_name );
   ~Reconstruction();
 
@@ -91,8 +97,6 @@ class Reconstruction {
 	     P33_S& alpha_r_z, float& r_conv );
 
   LUT* fLUT;
-  Reconstruction();
-  Reconstruction(Reconstruction const&);
 };
 
 #endif /*__RECONSTRUCTION_H__*/

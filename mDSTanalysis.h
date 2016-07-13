@@ -8,7 +8,6 @@
 #include "SubsysReco.h"
 #include "PhotonEvent.h"
 #include "Reconstruction.h"
-#include "MyCut.h"
 
 class Fun4AllServer;
 class CentralityReco;
@@ -41,7 +40,7 @@ class mDSTanalysis: public SubsysReco {
   
  protected:   
   TFile *fFile;
-  TTree fT;
+  TTree fTree;
  
   PhotonEvent fEvent;
   Reconstruction *fReconstruction;
