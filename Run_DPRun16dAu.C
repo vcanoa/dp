@@ -19,8 +19,8 @@ void Run_DPRun16dAu(const char *outFile = "dummy.root")
     reco_consts->set_IntFlag("RD_PAIRCUT_SELECTION", 1);
    
     //  Reconstruction Modules...
-    //SubsysReco *RD = new RDanalyzer();
-    se->registerSubsystem( new DPRun16dAu::RDanalyzer(outFile, lookupfile_location.c_str()));
+    mDSTanalysis *rd = new mDSTanalysis(outFile, lookupfile_location.c_str());
+    se->registerSubsystem( rd );
 }
 void InputData(vector<string> &indata)
 {

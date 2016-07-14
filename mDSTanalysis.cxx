@@ -4,7 +4,7 @@
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TMath.h>
-#include <TTree.h>
+#include "TTree.h"
 #include <TGraph.h>
 #include <vector>
 #include <TVector3.h>
@@ -13,7 +13,6 @@
 #include "PHCompositeNode.h"
 #include "PHIODataNode.h"
 #include "Reconstruction.h"
-#include "mDSTanalysis.h"
 
 #include "phool.h"
 
@@ -44,12 +43,15 @@
 #include "emcClusterContainer.h"
 #include "emcClusterContent.h"
 
+
+#include "mDSTanalysis.h"
+
 //=============================================================
 mDSTanalysis::mDSTanalysis(char *outfile, char* lookup_file) : 
-  SubsysReco("mDSTanalysis")
+  SubsysReco("mDSTanalysis"),
+  fFile(NULL),
+  fTree("T","one tree to analyze them all")
 {
-  fFile = NULL;
-  fTree = TTree("T","a tree with my events from Run14AuAu");
   fReconstruction = new Reconstruction();
   fEvent = PhotonEvent();
   fOutFileName = outfile;
@@ -168,7 +170,7 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
       ele = fEvent.GetNtrack(in); // get electron
       pos = fEvent.GetPtrack(ip); // get positron
       CNTDE de; // dielectron
-      fReconstruction->findIntersection(ele,pos,de,fEvent.GetVtxZ()); // FIXME vertexZ
+      //fReconstruction->findIntersection(ele,pos,de,fEvent.GetVtxZ()); // FIXME vertexZ
 
       // PAIR CUTS
 

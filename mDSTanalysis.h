@@ -6,6 +6,7 @@
 #include "TString.h"
 
 #include "SubsysReco.h"
+
 #include "PhotonEvent.h"
 #include "Reconstruction.h"
 
@@ -22,9 +23,9 @@ class ReactionPlaneObject;
 class ReactionPlaneSngl;
 class RunHeader;
 
-class mDSTanalysis: public SubsysReco {
+class mDSTanalysis : public SubsysReco {
  public:
-  mDSTanalysis(char *outfile = "output.root", char *lut = "lookup.root");
+  mDSTanalysis(char *outfile, char *lut);
   virtual ~mDSTanalysis();
   int   Init(PHCompositeNode*);
   int   InitRun(PHCompositeNode*);
@@ -47,9 +48,6 @@ class mDSTanalysis: public SubsysReco {
   
   TString fOutFileName;
   TString fLookupFileName; 
-}
+};
 
-#endif /* __RDANALYZER_H__ */
-
-
-
+#endif /* __MDSTANALYSIS_H__ */
