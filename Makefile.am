@@ -14,6 +14,7 @@ PhotonEvent.h \
 EMCC.h \
 CNTE.h \
 CNTDE.h \
+QA.h\
 mDstToPhotonEvent.h
 
 libDPRun16dAu_la_SOURCES = \
@@ -21,6 +22,7 @@ PhotonEvent.cxx \
 EMCC.cxx \
 CNTE.cxx \
 CNTDE.cxx \
+QA.C\
 mDstToPhotonEvent.cxx \
 DPRun16dAu_Dict.C 
 
@@ -49,6 +51,7 @@ DPRun16dAu_Dict.C: \
   EMCC.h \
   CNTE.h \
   CNTDE.h \
+  QA.h\
   mDstToPhotonEvent.h \
   DPRun16dAuLinkDef.h 
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
