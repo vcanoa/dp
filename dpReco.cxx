@@ -1,4 +1,4 @@
-#include "Reconstruction.h"
+#include "dpReco.h"
 #include <TFile.h>
 #include <TNtuple.h>
 #include <TMatrixD.h>
@@ -15,7 +15,7 @@ P33::P33(float X, float Y, float Z, float A, float B, float C) : fX(X), fY(Y), f
   fDep[1] = B;
   fDep[2] = C;
 }
-P33::P33(P33 const& other ) {
+P33::P33(const P33 &other ) {
   fX = other.fX;
   fY = other.fY;
   fZ = other.fZ;
@@ -31,7 +31,6 @@ P33_S::P33_S(float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z
       for(unsigned int k=0;k<2;++k)
 	fContainers[i][j][k]=NULL;
 }
-//======================
 P33_S::~P33_S() {
   for(unsigned int i=0;i<2;++i)
     for(unsigned int j=0;j<2;++j)
@@ -39,7 +38,6 @@ P33_S::~P33_S() {
 	if(fContainers[i][j][k]!=NULL)
 	  delete fContainers[i][j][k];
 }
-//======================
 void P33_S::AppendList(vector<P33>& point_list, float X_LO, float X_HI,
 		       float Y_LO, float Y_HI, float Z_LO, float Z_HI ) {
   for(unsigned int i=0;i<2;++i)
@@ -57,7 +55,29 @@ void P33_S::AppendList(vector<P33>& point_list, float X_LO, float X_HI,
 	fContainers[i][j][k]->AppendList( point_list, X_LO, X_HI, Y_LO, Y_HI, Z_LO, Z_HI );
       }
 }
+//======================
+P33_SE::P33_SE( float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI, int MLEV, int LEV ) : 
+  P33_S( X_LO,X_HI,Y_LO,Y_HI,Z_LO,Z_HI,MLEV,LEV ) {
+}
 
+bool P33_SE::Insert( P33 const& point ) {
+  fPoints.push_back(point);
+  return true;
+}
+void P33_SE::AppendList(vector<P33>& point_list,float X_LO,float X_HI,
+			float Y_LO,float Y_HI,float Z_LO,float Z_HI) {
+  for(unsigned int i=0;i<fPoints.size();++i) {
+    if( (fPoints[i].fX<X_LO) ||
+	(fPoints[i].fX>X_HI) ||
+	(fPoints[i].fY<Y_LO) ||
+	(fPoints[i].fY>Y_HI) ||
+	(fPoints[i].fZ<Z_LO) ||
+	(fPoints[i].fZ>Z_HI) ) 
+      continue;
+    point_list.push_back( fPoints[i] );
+  }
+}
+//======================
 bool P33_S::Insert(P33 const& point) {
   if( (point.fX < fX_lo) ||
       (point.fY < fY_lo) ||
@@ -103,26 +123,7 @@ bool P33_S::Insert(P33 const& point) {
   }
   return fContainers[x_ind][y_ind][z_ind]->Insert( point );
 }
-
-bool P33_SE::Insert( P33 const& point ) {
-  fPoints.push_back(point);
-  return true;
-}
-
-void P33_SE::AppendList(vector<P33>& point_list,float X_LO,float X_HI,
-			float Y_LO,float Y_HI,float Z_LO,float Z_HI) {
-  for(unsigned int i=0;i<fPoints.size();++i) {
-    if( (fPoints[i].fX<X_LO) ||
-	(fPoints[i].fX>X_HI) ||
-	(fPoints[i].fY<Y_LO) ||
-	(fPoints[i].fY>Y_HI) ||
-	(fPoints[i].fZ<Z_LO) ||
-	(fPoints[i].fZ>Z_HI) ) 
-      continue;
-    point_list.push_back( fPoints[i] );
-  }
-}
-
+//======================
 LUT::LUT( const char* lookup_file_name ) : alpha_r_z( 0., 0.7, 0., 150., 0., 100., 10 ) {
   TFile f(lookup_file_name);
   TNtuple* t=0;
@@ -145,20 +146,19 @@ LUT::LUT( const char* lookup_file_name ) : alpha_r_z( 0., 0.7, 0., 150., 0., 100
   }
   f.Close();
 }
-
-Reconstruction::Reconstruction( const char* lookup_file_name ) {
+//======================
+dpReco::dpReco( const char* lookup_file_name ) {
   fLUT = new LUT(lookup_file_name);
   fMaxR = 30.;
   fLookupAlphaDeltaBase = 0.01;
   fLookupRDeltaBase = 2.0;
   fLookupZDeltaBase = 4.0;
 }
-
-Reconstruction::~Reconstruction() {
+dpReco::~dpReco() {
   delete fLUT;
 }
 
-float Reconstruction::EvaluateFit( TMatrixD& beta, float alpha, float r, float z_DC_m_z_ver ) {
+float dpReco::EvaluateFit( TMatrixD& beta, float alpha, float r, float z_DC_m_z_ver ) {
   float retval = 0.;
   retval += beta(0,0);
   retval += beta(1,0)*alpha;
@@ -174,7 +174,7 @@ float Reconstruction::EvaluateFit( TMatrixD& beta, float alpha, float r, float z
   return retval;
 }
 
-void Reconstruction::RemoveOutliers( int ind, TMatrixD& beta, vector<P33>& points_temp, vector<P33>& points ) {
+void dpReco::RemoveOutliers( int ind, TMatrixD& beta, vector<P33>& points_temp, vector<P33>& points ) {
   points.clear();
 
   float sig = 0.;
@@ -193,7 +193,7 @@ void Reconstruction::RemoveOutliers( int ind, TMatrixD& beta, vector<P33>& point
     }
 }
 
-TMatrixD Reconstruction::PerformFit( int ind, vector<P33> const& points )
+TMatrixD dpReco::PerformFit( int ind, vector<P33> const& points )
 {
   TMatrixD X( points.size(), 10 );
   TMatrixD y( points.size(), 1  );
@@ -227,7 +227,7 @@ TMatrixD Reconstruction::PerformFit( int ind, vector<P33> const& points )
 // 0 <--> phi
 // 1 <--> p
 // 2 <--> theta
-float Reconstruction::LookupFit( float alpha, float r, float z_DC_m_z_ver, int ind, P33_S& alpha_r_z, float& lookup_ind ) {
+float dpReco::LookupFit( float alpha, float r, float z_DC_m_z_ver, int ind, P33_S& alpha_r_z, float& lookup_ind ) {
   // r can be -9999 when find_conv() fails
   if ( r<0 || r>fMaxR ) { lookup_ind = -9999.; return 0; }
   if ( alpha<0 || z_DC_m_z_ver<0 ) {
@@ -263,7 +263,7 @@ float Reconstruction::LookupFit( float alpha, float r, float z_DC_m_z_ver, int i
 }
 
 
-bool Reconstruction::ProjectPhi( float alpha, float phiDC, float r, float z_DC_m_z_ver, P33_S& alpha_r_z, float& phi_r ) {
+bool dpReco::ProjectPhi( float alpha, float phiDC, float r, float z_DC_m_z_ver, P33_S& alpha_r_z, float& phi_r ) {
   //DC coord sys: phi -0.5Pi~1.5Pi
   if ( (r<0) || (r>fMaxR) ) { phi_r=-9999.; return 0; }
   float lookup_phi = 0;
@@ -300,7 +300,7 @@ bool Reconstruction::ProjectPhi( float alpha, float phiDC, float r, float z_DC_m
   return 1;
 }
 
-bool Reconstruction::ProjectTheta( float alpha, float r, float z_DC_m_z_ver,
+bool dpReco::ProjectTheta( float alpha, float r, float z_DC_m_z_ver,
 				    P33_S& alpha_r_z, float& theta_r ) {
   //DC coord sys: phi -0.5Pi~1.5Pi
   if ( (r<0) || (r>fMaxR) ) {
@@ -323,7 +323,7 @@ bool Reconstruction::ProjectTheta( float alpha, float r, float z_DC_m_z_ver,
   return 1;
 }
 
-bool Reconstruction::DeltaPhi( float alpha_e, float alpha_p,
+bool dpReco::DeltaPhi( float alpha_e, float alpha_p,
 				float phi_e, float phi_p,
 				float r, float z_DC_m_z_ver_e, float z_DC_m_z_ver_p,
 				P33_S& alpha_r_z, float& dphi ) {
@@ -340,7 +340,7 @@ bool Reconstruction::DeltaPhi( float alpha_e, float alpha_p,
   return 1;
 }
 
-bool Reconstruction::FindR( float alpha_e, float alpha_p,
+bool dpReco::FindR( float alpha_e, float alpha_p,
 			    float phi_e, float phi_p,
 			    float z_DC_m_z_ver_e, float z_DC_m_z_ver_p,
 			    P33_S& alpha_r_z, float& r_conv ) {
@@ -401,7 +401,7 @@ bool Reconstruction::FindR( float alpha_e, float alpha_p,
   return 1;
 }
 
-void Reconstruction::findIntersection(CNTE *pos,
+void dpReco::findIntersection(CNTE *pos,
 				      CNTE *neg,
 				      CNTDE *de,
 				      float zvertex) {
@@ -432,7 +432,7 @@ void Reconstruction::findIntersection(CNTE *pos,
   de->SetPtheta( theta_conv_p );
 }
 
-TVector3 Reconstruction::findMomentum(CNTE* trk, float r, float phi_conv, float theta_conv, float zvertex) {
+TVector3 dpReco::findMomentum(CNTE* trk, float r, float phi_conv, float theta_conv, float zvertex) {
   TVector3 vec;
   float mom, phi, theta;
   LookupFit( TMath::Abs(trk->GetAlpha()), r, TMath::Abs(trk->GetZed() - zvertex), 1, fLUT->alpha_r_z, mom );

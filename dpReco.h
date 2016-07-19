@@ -1,5 +1,5 @@
-#ifndef __RECONSTRUCTION_H__
-#define __RECONSTRUCTION_H__
+#ifndef __DPRECO_H__
+#define __DPRECO_H__
 
 #include <vector>
 
@@ -14,16 +14,25 @@ using namespace std;
 //======================
 class P33 {
  public:
+  P33() {}
+  P33(float X, float Y, float Z, float A, float B, float C);
+  P33( const P33 &other );
   float fX;
   float fY;
   float fZ;
   float fDep[3];
-  P33(float X, float Y, float Z, float A, float B, float C);
-  P33( P33 const& other );
 };
 //======================
 class P33_S {
  public:
+  P33_S() {}
+  P33_S(float X_LO, float X_HI, float Y_LO, float Y_HI,
+	float Z_LO, float Z_HI, int MLEV, int LEV=0);
+  virtual ~P33_S();
+  virtual bool Insert( P33 const& point );
+  virtual void AppendList(vector<P33>& point_list,
+			  float X_LO, float X_HI, float Y_LO, float Y_HI,
+			  float Z_LO, float Z_HI);
   float fX_lo;
   float fX_hi;
   float fY_lo;
@@ -33,17 +42,11 @@ class P33_S {
   int fLevel;
   int fMaxLevel;
   P33_S *fContainers[2][2][2];
-  P33_S(float X_LO, float X_HI, float Y_LO, float Y_HI,
-	float Z_LO, float Z_HI, int MLEV, int LEV=0);
-  virtual ~P33_S();
-  virtual bool Insert( P33 const& point );
-  virtual void AppendList(vector<P33>& point_list,
-			  float X_LO, float X_HI, float Y_LO, float Y_HI,
-			  float Z_LO, float Z_HI);
 };
 //======================
-class P33_SE : public P33_S {
+class P33_SE: public P33_S {
  public:
+  P33_SE() {}
   P33_SE( float X_LO, float X_HI, float Y_LO, float Y_HI,
 	  float Z_LO, float Z_HI, int MLEV, int LEV=0 );
   virtual ~P33_SE();
@@ -56,20 +59,21 @@ class P33_SE : public P33_S {
 //======================
 class LUT {
  public:
+  LUT() {}
   LUT( const char* lookup_file_name );
   P33_S alpha_r_z;
 };
 //======================
-class Reconstruction {
+class dpReco {
  public:
   float fMaxR;
   float fLookupAlphaDeltaBase;
   float fLookupRDeltaBase;
   float fLookupZDeltaBase;
-  Reconstruction();
-  Reconstruction(Reconstruction const&);
-  Reconstruction( const char* lookup_file_name );
-  ~Reconstruction();
+  dpReco() {}
+  dpReco(dpReco const&);
+  dpReco( const char* lookup_file_name );
+  ~dpReco();
 
   void findIntersection(CNTE *trk1, CNTE *trk2, CNTDE *pair, float zvertex);
   TVector3 findMomentum(CNTE *trk, float r_conv, float phi_conv,
@@ -99,5 +103,5 @@ class Reconstruction {
   LUT* fLUT;
 };
 
-#endif /*__RECONSTRUCTION_H__*/
+#endif /*__DPRECO_H__*/
 

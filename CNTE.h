@@ -1,9 +1,7 @@
 #ifndef __CNTE_H__
 #define __CNTE_H__
 
-#include "TObject.h"
-
-class CNTE : public TObject {
+class CNTE {
  private:
   int fDCarm;
   int fDCside;
@@ -107,7 +105,5 @@ class CNTE : public TObject {
   void SetEsect(float val)      { fEsect = val; };
   void SetYsect(float val)      { fYsect = val; };
   void SetZsect(float val)      { fZsect = val; };
-  
-  ClassDef(CNTE,1)
 };
 #endif

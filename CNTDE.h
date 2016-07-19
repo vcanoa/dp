@@ -1,8 +1,6 @@
 #ifndef __CNTDE_H__
 #define __CNTDE_H__
 
-#include "TObject.h"
-
 class CNTDE {
  private:
   float fEphi;
@@ -33,7 +31,6 @@ class CNTDE {
   void SetEid(int val)      { fEid = val; }
   void SetPid(int val )     { fPid = val; }
   
-  ClassDef(CNTDE,1)
 };
 
 #endif

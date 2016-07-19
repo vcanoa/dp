@@ -9,20 +9,19 @@ noinst_HEADERS = \
 DPRun16dAuLinkDef.h
 
 pkginclude_HEADERS = \
+PHPhotonEvent.h \
 PhotonEvent.h \
 EMCC.h \
 CNTE.h \
 CNTDE.h \
-Reconstruction.h \
-mDSTanalysis.h
+mDstToPhotonEvent.h
 
 libDPRun16dAu_la_SOURCES = \
 PhotonEvent.cxx \
 EMCC.cxx \
 CNTE.cxx \
 CNTDE.cxx \
-Reconstruction.cpp \
-mDSTanalysis.cxx \
+mDstToPhotonEvent.cxx \
 DPRun16dAu_Dict.C 
 
 libDPRun16dAu_la_LIBADD = \
@@ -45,12 +44,12 @@ libDPRun16dAu_la_LIBADD = \
 
 # Rule for generating CINT dictionaries from class headers.
 DPRun16dAu_Dict.C: \
+  PHPhotonEvent.h \
   PhotonEvent.h \
   EMCC.h \
   CNTE.h \
   CNTDE.h \
-  Reconstruction.h \
-  mDSTanalysis.h \
+  mDstToPhotonEvent.h \
   DPRun16dAuLinkDef.h 
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

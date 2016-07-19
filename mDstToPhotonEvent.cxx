@@ -12,7 +12,7 @@
 
 #include "PHCompositeNode.h"
 #include "PHIODataNode.h"
-#include "Reconstruction.h"
+//#include "dpReco.h"
 
 #include "phool.h"
 
@@ -43,42 +43,62 @@
 #include "emcClusterContainer.h"
 #include "emcClusterContent.h"
 
+#include "PhotonEvent.h"
+#include "PHPhotonEvent.h"
 
-#include "mDSTanalysis.h"
+#include "mDstToPhotonEvent.h"
 
 //=============================================================
-mDSTanalysis::mDSTanalysis(char *outfile, char* lookup_file) : 
-  SubsysReco("mDSTanalysis"),
+mDstToPhotonEvent::mDstToPhotonEvent(char *outfile, char* lookup_file) : 
+  SubsysReco("mDstToPhotonEvent"),
   fFile(NULL),
-  fTree("T","one tree to analyze them all")
+  fTree(NULL),
+  fEvent(NULL)
 {
-  fReconstruction = new Reconstruction();
-  fEvent = PhotonEvent();
+  //fReconstruction = NULL;//new dpReco(lookup_file);
   fOutFileName = outfile;
+  if(fOutFileName.Length()>0)
+    fTree = new TTree("T","one tree to analyze them all");
   fLookupFileName = lookup_file;
+  std::cout << "mDstToPhotonEvent::CTOR()" << std::endl;
   return;
 }
 //=============================================================
-mDSTanalysis::~mDSTanalysis()
+mDstToPhotonEvent::~mDstToPhotonEvent()
 {
+  if(fTree) delete fTree;
   if(fFile) delete fFile;
 }
 //=============================================================
-int mDSTanalysis::Init(PHCompositeNode *)
+int mDstToPhotonEvent::Init(PHCompositeNode *)
 {
-  fFile = new TFile(fOutFileName.Data(),"RECREATE");
-  fTree.Branch("PhotonEvent",&fEvent);
+  std::cout << "mDstToPhotonEvent::INIT()" << std::endl;
   return 0;
 }
 //=============================================================
-int mDSTanalysis::InitRun(PHCompositeNode *topNode)
+int mDstToPhotonEvent::InitRun(PHCompositeNode *topNode)
 {
-  fTree.Reset();
+  PHNodeIterator nodeIter(topNode);
+  PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(nodeIter.findFirst("PHCompositeNode","DST"));
+  if(dstNode == NULL) {
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
+  }
+  PHPhotonEvent *phevent = new PHPhotonEvent();
+  PHIODataNode<PHPhotonEvent> *hitNode = new PHIODataNode<PHPhotonEvent>(phevent,"PhotonEvent","PHPhotonEvent");
+  dstNode->addNode(hitNode);
+  fEvent = phevent->GetEvent();
+  if(fOutFileName.Length()>0) {
+    fTree->Branch("PhotonEvent",fEvent);
+    fTree->Reset();
+  }
+  std::cout << "mDstToPhotonEvent::INITRUN()" << std::endl;
   return 0;
 }
 //=============================================================
-int mDSTanalysis::process_event(PHCompositeNode *topNode)
+int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
 {
+  fEvent->Clear();
   static int ncalls = 0;
   ncalls++;
   if ( (ncalls)%1000==0 ) std::cout << "Event process = " << ncalls << std::endl;
@@ -95,12 +115,13 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
   if( !rp ) return DISCARDEVENT;
   RunHeader *header = findNode::getClass<RunHeader>(topNode,"RunHeader");
   if( !header ) return DISCARDEVENT;
+
   
   // EVE
-  fEvent.SetRunNumber( header->get_RunNumber() );
-  fEvent.SetBBCcharge( phg->getBbcChargeN() + phg->getBbcChargeS() );
-  fEvent.SetVtxZ( phg->getBbcZVertex() );
-  fEvent.SetCentrality( phg->getCentrality() );
+  fEvent->SetRunNumber( header->get_RunNumber() );
+  fEvent->SetBBCcharge( phg->getBbcChargeN() + phg->getBbcChargeS() );
+  fEvent->SetVtxZ( phg->getBbcZVertex() );
+  fEvent->SetCentrality( phg->getCentrality() );
 
   ReactionPlaneSngl *rpsngl;
   rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 0, 1));
@@ -109,9 +130,9 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
   float psi_BBCN = (rpsngl) ? rpsngl->GetPsi() : -9999;
   rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 2, 1));
   float psi_BBC = (rpsngl) ? rpsngl->GetPsi() : -9999;
-  fEvent.SetPsiBBC(psi_BBC);
-  fEvent.SetPsiBBCN(psi_BBCN);
-  fEvent.SetPsiBBCS(psi_BBCS);
+  fEvent->SetPsiBBC(psi_BBC);
+  fEvent->SetPsiBBCN(psi_BBCN);
+  fEvent->SetPsiBBCS(psi_BBCS);
 
   // PHPoint vtxr = d_vtxout->get_Vertex("SVX_PRECISE_RECAL");
   // event.SetSvxZ( vtxr.getZ() );
@@ -153,24 +174,22 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
     track.SetEsect( cnttrk->get_sect(t) );
     track.SetYsect( cnttrk->get_ysect(t) );
     track.SetZsect( cnttrk->get_zsect(t) );
-
     //TRACK CUTS
-
     if(track.GetCharge()==1)
-      fEvent.AddNTrack( track );
+      fEvent->AddNTrack( track );
     if(track.GetCharge()==-1)
-      fEvent.AddPTrack( track );
+      fEvent->AddPTrack( track );
   }
 
   // PAIRS
   CNTE *ele, *pos;
   bool atLeastOneFound = false;
-  for(int in=0; in!=fEvent.GetNEtracks(); ++in) // electrons
-    for(int ip=0; ip!=fEvent.GetNPtracks(); ++ip) { // positrons
-      ele = fEvent.GetNtrack(in); // get electron
-      pos = fEvent.GetPtrack(ip); // get positron
+  for(int in=0; in!=fEvent->GetNEtracks(); ++in) // electrons
+    for(int ip=0; ip!=fEvent->GetNPtracks(); ++ip) { // positrons
+      ele = fEvent->GetNtrack(in); // get electron
+      pos = fEvent->GetPtrack(ip); // get positron
       CNTDE de; // dielectron
-      //fReconstruction->findIntersection(ele,pos,de,fEvent.GetVtxZ()); // FIXME vertexZ
+      //fReconstruction->findIntersection(ele,pos,de,fEvent->GetVtxZ()); // FIXME vertexZ
 
       // PAIR CUTS
 
@@ -194,21 +213,24 @@ int mDSTanalysis::process_event(PHCompositeNode *topNode)
 
     // CLUSTER CUTS
 
-    fEvent.AddCluster( cluster );
+    fEvent->AddCluster( cluster );
   }
 
-  fTree.Fill();
-  fEvent.Clear();
+  if(fOutFileName.Length()>0) fTree->Fill();
 
   return 0;
 }
 //=============================================================
-int mDSTanalysis::End(PHCompositeNode *topNode)
+int mDstToPhotonEvent::End(PHCompositeNode *topNode)
 {
-  std::cout<<"mDSTanlysis::End() ==> Terminating... "<<std::endl;
-  fTree.Write();
-  fFile->Write();
-  fFile->Close();
+  std::cout<<"mDstToPhotonEvent::End() ==> Terminating... "<<std::endl;
+  if(fOutFileName.Length()>0) {
+    std::cout << "FileName: " << fOutFileName.Data() << std::endl;
+    fFile = new TFile(fOutFileName.Data(),"RECREATE");
+    fTree->Write();
+    fFile->Write();
+    fFile->Close();
+  }
   std::cout<<"[DONE]"<<std::endl;
   return 0;
 }

@@ -1,4 +1,3 @@
-
 #ifndef __CINT__
 #include <cstdlib>
 #include <cstring>
@@ -3561,6 +3560,7 @@ void RunMyMacro(const char *modulemacro = "Run_DPRun16dAu.C",  // your anataxi m
   cout << "running user macro like: " << runmac << endl;
   // execute the user macro
   gROOT->ProcessLine(runmac, &ierror);
+  cout << "cpDONE" << endl;
   if (ierror != TInterpreter::kNoError)
     {
       cout << "Error: could not execute " << runmac << endl;

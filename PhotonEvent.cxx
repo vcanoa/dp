@@ -7,8 +7,6 @@
 
 using namespace std;
 
-ClassImp(PhotonEvent)
-
 PhotonEvent::PhotonEvent() {
   fBBCcharge  = -999;
   fZVertex    = -999;

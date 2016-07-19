@@ -9,7 +9,7 @@
 
 using namespace std;
 
-class PhotonEvent : public TObject  {
+class PhotonEvent {
  private:
   float fBBCcharge;
   float fZVertex;
@@ -67,8 +67,6 @@ class PhotonEvent : public TObject  {
   vector<CNTE>  GetNTracks()  { return fN; };
   vector<EMCC>  GetClusters() { return fEMCC; };
   vector<CNTDE> GetPairs()    { return fDE; };
-  
-  ClassDef(PhotonEvent,1)
 };
 
 #endif

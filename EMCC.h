@@ -1,9 +1,7 @@
 #ifndef __EMCC_H__
 #define __EMCC_H__
 
-#include "TObject.h"
-
-class EMCC : public TObject {
+class EMCC {
  private:
   int   fArm;
   int   fID;
@@ -39,8 +37,6 @@ class EMCC : public TObject {
   void     SetProb(float val) { fProbPhoton = val; };
   void     SetEmcdz(float val) { fEMCdz = val; };
   void     SetEmcdphi(float val) { fEMCdphi = val; };
-  
-  ClassDef(EMCC,1)
 };
 
 #endif
