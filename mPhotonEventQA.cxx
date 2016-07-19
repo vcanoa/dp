@@ -13,8 +13,7 @@
 
 #include "PHCompositeNode.h"
 #include "PHIODataNode.h"
-#include "Reconstruction.h"
-#include "QA.h"
+#include "mPhotonEventQA.h"
 
 #include "phool.h"
 
@@ -58,8 +57,8 @@ static const unsigned int BBCLL1_narr = 0x00000004;
 
 
 
-QA::QA(const char *outfile) : 
-  SubsysReco("QA"), centReco(0)
+mPhotonEventQA::mPhotonEventQA(const char *outfile) : 
+  SubsysReco("mPhotonEventQA"), centReco(0)
             
     {  
         f = NULL;
@@ -99,16 +98,16 @@ QA::QA(const char *outfile) :
         return;
     }
 
-    QA::~QA()
+    mPhotonEventQA::~mPhotonEventQA()
     { 
         delete f;  
     }
 
-    int QA::Init(PHCompositeNode *topNode)
+    int mPhotonEventQA::Init(PHCompositeNode *topNode)
     {        
         se = Fun4AllServer::instance();	
         
-        std::cout << "QA::Init: " << "Book bbczdc multi-histogram" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book bbczdc multi-histogram" << std::endl;
         bbczdc = new THmulf("bbczdc","Bbc Zdc Distr");
         bbczdc->AddAxis("cent","centrality",100, -0.5, 99.5);
         bbczdc->AddAxis("bbcs","bbc S charge",15,0.,1500.);
@@ -116,14 +115,14 @@ QA::QA(const char *outfile) :
         bbczdc->AddAxis("vtxz","vertex z position",70,-35.,35.);
         se->registerHisto( bbczdc->GetName(), bbczdc );
 
-        std::cout << "QA::Init: " << "Book rp multi-histogram" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book rp multi-histogram" << std::endl;
         bbcrp = new THmulf("bbcrp","BBC Reaction Plane");
         bbcrp->AddAxis("psi_bbcn","rp from BBC N",100,-TMath::Pi()/2,TMath::Pi()/2);
         bbcrp->AddAxis("psi_bbcs","rp from BBC S",100,-TMath::Pi()/2,TMath::Pi()/2);
         bbcrp->AddAxis("psi_bbc","rp from BBC N+S",100,-TMath::Pi()/2,TMath::Pi()/2);
         se->registerHisto( bbcrp->GetName(), bbcrp );
         
-        std::cout << "QA::Init: " << "Book eoverp multi-histogram" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book eoverp multi-histogram" << std::endl;
         eoverp = new THmulf("eoverp","E over p");
         eoverp->AddAxis("ep","e/p",100, 0, 1.5);
         eoverp->AddAxis("pt","pt",100,0.,10.);
@@ -131,7 +130,7 @@ QA::QA(const char *outfile) :
         eoverp->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( eoverp->GetName(), eoverp );
 
-        std::cout << "QA::Init: " << "Book dep multi-histogram" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book dep multi-histogram" << std::endl;
         dep = new THmulf("dep","E over p");
         dep->AddAxis("sep","sigmalized e/p",100, -5, 5);
         dep->AddAxis("pt","pt",100,0.,10.);
@@ -139,7 +138,7 @@ QA::QA(const char *outfile) :
         dep->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( dep->GetName(), dep );
 
-        std::cout << "QA::Init: " << "Book emcdphi multi-histogram" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book emcdphi multi-histogram" << std::endl;
         emcdphi = new THmulf("emcdphi","emcdphi");
         emcdphi->AddAxis("emcdphi","emcdphi",100, -0.1, 0.1);
         emcdphi->AddAxis("pt","pt",100,0.,10.);
@@ -147,7 +146,7 @@ QA::QA(const char *outfile) :
         emcdphi->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( emcdphi->GetName(), emcdphi );
 
-        std::cout << "QA::Init: " << "Book emcdz multi-histogram" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book emcdz multi-histogram" << std::endl;
         emcdz = new THmulf("emcdz","emcdz");
         emcdz->AddAxis("emcdz","emcdz",100, -40, 40);
         emcdz->AddAxis("pt","pt",100,0.,10.);
@@ -155,7 +154,7 @@ QA::QA(const char *outfile) :
         emcdz->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( emcdz->GetName(), emcdz );
         
-        std::cout << "QA::Init: " << "Book hits histograms" << std::endl;     
+        std::cout << "mPhotonEventQA::Init: " << "Book hits histograms" << std::endl;     
         h_ntrk = new TH1F("h_ntrk","Track Multiplicity",200,0,200);
         se->registerHisto( h_ntrk->GetName(), h_ntrk );
         h_ncharged = new TH1F("h_ncharged","Electron/Positron Multiplicity",3,-1.5,1.5);
@@ -166,7 +165,7 @@ QA::QA(const char *outfile) :
         se->registerHisto( h_nemc->GetName(), h_nemc );
 
         // DC dead map (including PC1 effect)
-        std::cout << "QA::Init: " << "Book multi-histogram for DC map" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for DC map" << std::endl;
         map_dc = new THmulf("map_dc","map_dc");
         map_dc->AddAxis("board","board", 82*4, -1.5, 80.5);
         map_dc->AddAxis("alpha","alpha", 100, -0.9, 0.9);
@@ -175,7 +174,7 @@ QA::QA(const char *outfile) :
         se->registerHisto( map_dc->GetName(), map_dc );
 
         // Emcal dead map
-        std::cout << "QA::Init: " << "Book multi-histogram for Emcal map" << std::endl;
+        std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for Emcal map" << std::endl;
         map_emc = new THmulf("map_emc","map_emc");
         map_emc->AddAxis("ypos","ypos", 50, 0, 50);
         map_emc->AddAxis("zpos","zpos", 100, 0, 100);
@@ -183,7 +182,7 @@ QA::QA(const char *outfile) :
         se->registerHisto( map_emc->GetName(), map_emc );
 
         // // RICH dead map
-        // std::cout << "QA::Init: " << "Book multi-histogram for RICH map" << std::endl;
+        // std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for RICH map" << std::endl;
         // map_rich = new THmulf("map_rich","map_rich");
         // map_rich->AddAxis("phi_pmt","phi_pmt", 80, -0.5, 79.5);
         // map_rich->AddAxis("z_pmt","z_pmt", 16, -0.5, 15.5);
@@ -202,12 +201,12 @@ QA::QA(const char *outfile) :
         return 0;
     }
 
-    int QA::InitRun(PHCompositeNode *topNode)
+    int mPhotonEventQA::InitRun(PHCompositeNode *topNode)
     {
         return 0;
     }
 
-    int QA::process_event(PHCompositeNode *topNode)
+    int mPhotonEventQA::process_event(PHCompositeNode *topNode)
     {
         //real data
         static int ncalls = 0;
@@ -263,9 +262,9 @@ QA::QA(const char *outfile) :
         return 0;
     }
 
-    int QA::GetNodes(PHCompositeNode *topNode)
+    int mPhotonEventQA::GetNodes(PHCompositeNode *topNode)
     {
-        // std::cout<<"QA::Reading Nodes "<<std::endl;   
+        // std::cout<<"mPhotonEventQA::Reading Nodes "<<std::endl;   
         phg = findNode::getClass<PHGlobal>(topNode,"PHGlobal");
         if( !phg )
         {
@@ -307,7 +306,7 @@ QA::QA(const char *outfile) :
         return EVENT_OK;        
     }
 
-    bool QA::trigger_selection()
+    bool mPhotonEventQA::trigger_selection()
     {
         // Run14@AuAu
         // 4 - BBCLL1(>1 tubes) narrowvtx
@@ -322,7 +321,7 @@ QA::QA(const char *outfile) :
         return 1;
     }
 
-    void QA::run_by_run()
+    void mPhotonEventQA::run_by_run()
     {
         // fill bbczdc
         float bbcqn = phg->getBbcChargeN();
@@ -383,7 +382,7 @@ QA::QA(const char *outfile) :
         }    
     }
 
-    bool QA::cut_for_calibration(int itrk_reco)
+    bool mPhotonEventQA::cut_for_calibration(int itrk_reco)
     {
         // no dep cut, no E/p cut, not sure about emcdphi & emcdz
         float Z_GLOBAL=75, N0 = 1, DISP = 5, CHI2_NPE0 = 10, EMCDZ = 40, EMCDPHI = 0.1, PROB = 0.01;
@@ -399,7 +398,7 @@ QA::QA(const char *outfile) :
         return 1;
     }
 
-    void QA::calibrations()
+    void mPhotonEventQA::calibrations()
     {
         for (int itrk_reco = 0; itrk_reco < int(trk->get_npart()); ++itrk_reco)         
         {
@@ -427,7 +426,7 @@ QA::QA(const char *outfile) :
         return ((0.573231+phi_dc-0.0046*cos(phi_dc+0.05721))/0.01963496);
     }
 
-    void QA::DC_map()
+    void mPhotonEventQA::DC_map()
     {
         int Z_GLOBAL=75;
         for (int itrk_reco = 0; itrk_reco < (int)(trk->get_npart()); ++itrk_reco)         
@@ -443,7 +442,7 @@ QA::QA(const char *outfile) :
         }
     }
 
-    void QA::Emcal_map()
+    void mPhotonEventQA::Emcal_map()
     {
         for (int iclus = 0; iclus < (int)(emccont->size()); iclus++)
         {
@@ -460,11 +459,11 @@ QA::QA(const char *outfile) :
         }  
     }
 
-    // void QA::RICH_map() {   }
+    // void mPhotonEventQA::RICH_map() {   }
 
-    int QA::End(PHCompositeNode *topNode){
+    int mPhotonEventQA::End(PHCompositeNode *topNode){
         // write the output trees
-        std::cout<<"creating histos for QA"<<std::endl;
+        std::cout<<"creating histos for mPhotonEventQA"<<std::endl;
         
         f = new TFile(OutFileName.c_str(),"RECREATE");
         bbczdc->Write();

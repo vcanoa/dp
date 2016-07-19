@@ -10,11 +10,12 @@ void Run_DPRun16dAu(const char *outFile = "dummy.root")
     TOAD toad_loader("PhotonConversionAnalysis");
     toad_loader.SetVerbosity(4);
     string lookupfile_location = toad_loader.location("lookup_3D.root");
-    cout << "Loading TOAD" << endl;
     
-    mDstToPhotonEvent *rd = new mDstToPhotonEvent(outFile, lookupfile_location.c_str());
-    se->registerSubsystem( rd );
-    cout << "Module attached" << endl;
+    //mDstToPhotonEvent *rd = new mDstToPhotonEvent(outFile, lookupfile_location.c_str());
+    //se->registerSubsystem( rd );
+
+    mPhotonEventQA *qa = new mPhotonEventQA(outFile);
+    se->registerSubsystem( qa );
 }
 void InputData(vector<string> &indata)
 {

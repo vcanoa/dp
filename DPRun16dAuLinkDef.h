@@ -17,5 +17,6 @@
 #pragma link C++ class PhotonEvent+;
 #pragma link C++ class PHPhotonEvent+;
 #pragma link C++ class mDstToPhotonEvent+;
+#pragma link C++ class mPhotonEventQA+;
 
 #endif /* __CINT__ */
