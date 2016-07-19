@@ -9,6 +9,7 @@ noinst_HEADERS = \
 DPRun16dAuLinkDef.h
 
 pkginclude_HEADERS = \
+QA.h\
 PhotonEvent.h \
 EMCC.h \
 CNTE.h \
@@ -17,6 +18,7 @@ Reconstruction.h \
 mDSTanalysis.h
 
 libDPRun16dAu_la_SOURCES = \
+QA.C\
 PhotonEvent.cxx \
 EMCC.cxx \
 CNTE.cxx \
@@ -45,6 +47,7 @@ libDPRun16dAu_la_LIBADD = \
 
 # Rule for generating CINT dictionaries from class headers.
 DPRun16dAu_Dict.C: \
+  QA.h\
   PhotonEvent.h \
   EMCC.h \
   CNTE.h \
