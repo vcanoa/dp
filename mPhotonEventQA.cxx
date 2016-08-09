@@ -38,6 +38,7 @@
 #include "PHCentralTrack.h"
 #include "PHCentralTrackv24.h"
 #include "PHSnglCentralTrackv24.h"
+//#include "PHGlobal_CENTRAL.h"
 
 //EMCal includes
 #include "emcClusterContainer.h"
@@ -45,6 +46,7 @@
 
 typedef PHIODataNode <PHObject>   PHObjectNode_t;
 typedef PHIODataNode <PHCentralTrack>   PHCentralTrackNode_t;
+//typedef PHIODataNode <PHGlobal_CENTRAL>   PHGlobal_CENTRAL_t;
 
 #include "Math/Polynomial.h"
 #include "Math/Interpolator.h"
@@ -107,7 +109,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
     {        
         se = Fun4AllServer::instance();	
         
-        std::cout << "mPhotonEventQA::Init: " << "Book bbczdc multi-histogram" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book bbczdc multi-histogram" << std::endl;
         bbczdc = new THmulf("bbczdc","Bbc Zdc Distr");
         bbczdc->AddAxis("cent","centrality",100, -0.5, 99.5);
         bbczdc->AddAxis("bbcs","bbc S charge",15,0.,1500.);
@@ -115,14 +117,14 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         bbczdc->AddAxis("vtxz","vertex z position",70,-35.,35.);
         se->registerHisto( bbczdc->GetName(), bbczdc );
 
-        std::cout << "mPhotonEventQA::Init: " << "Book rp multi-histogram" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book rp multi-histogram" << std::endl;
         bbcrp = new THmulf("bbcrp","BBC Reaction Plane");
         bbcrp->AddAxis("psi_bbcn","rp from BBC N",100,-TMath::Pi()/2,TMath::Pi()/2);
         bbcrp->AddAxis("psi_bbcs","rp from BBC S",100,-TMath::Pi()/2,TMath::Pi()/2);
         bbcrp->AddAxis("psi_bbc","rp from BBC N+S",100,-TMath::Pi()/2,TMath::Pi()/2);
         se->registerHisto( bbcrp->GetName(), bbcrp );
         
-        std::cout << "mPhotonEventQA::Init: " << "Book eoverp multi-histogram" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book eoverp multi-histogram" << std::endl;
         eoverp = new THmulf("eoverp","E over p");
         eoverp->AddAxis("ep","e/p",100, 0, 1.5);
         eoverp->AddAxis("pt","pt",100,0.,10.);
@@ -130,7 +132,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         eoverp->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( eoverp->GetName(), eoverp );
 
-        std::cout << "mPhotonEventQA::Init: " << "Book dep multi-histogram" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book dep multi-histogram" << std::endl;
         dep = new THmulf("dep","E over p");
         dep->AddAxis("sep","sigmalized e/p",100, -5, 5);
         dep->AddAxis("pt","pt",100,0.,10.);
@@ -138,7 +140,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         dep->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( dep->GetName(), dep );
 
-        std::cout << "mPhotonEventQA::Init: " << "Book emcdphi multi-histogram" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book emcdphi multi-histogram" << std::endl;
         emcdphi = new THmulf("emcdphi","emcdphi");
         emcdphi->AddAxis("emcdphi","emcdphi",100, -0.1, 0.1);
         emcdphi->AddAxis("pt","pt",100,0.,10.);
@@ -146,7 +148,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         emcdphi->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( emcdphi->GetName(), emcdphi );
 
-        std::cout << "mPhotonEventQA::Init: " << "Book emcdz multi-histogram" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book emcdz multi-histogram" << std::endl;
         emcdz = new THmulf("emcdz","emcdz");
         emcdz->AddAxis("emcdz","emcdz",100, -40, 40);
         emcdz->AddAxis("pt","pt",100,0.,10.);
@@ -154,7 +156,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         emcdz->AddAxis("charge","charge",3,-1.5,1.5);
         se->registerHisto( emcdz->GetName(), emcdz );
         
-        std::cout << "mPhotonEventQA::Init: " << "Book hits histograms" << std::endl;     
+	// std::cout << "mPhotonEventQA::Init: " << "Book hits histograms" << std::endl;     
         h_ntrk = new TH1F("h_ntrk","Track Multiplicity",200,0,200);
         se->registerHisto( h_ntrk->GetName(), h_ntrk );
         h_ncharged = new TH1F("h_ncharged","Electron/Positron Multiplicity",3,-1.5,1.5);
@@ -165,7 +167,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         se->registerHisto( h_nemc->GetName(), h_nemc );
 
         // DC dead map (including PC1 effect)
-        std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for DC map" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for DC map" << std::endl;
         map_dc = new THmulf("map_dc","map_dc");
         map_dc->AddAxis("board","board", 82*4, -1.5, 80.5);
         map_dc->AddAxis("alpha","alpha", 100, -0.9, 0.9);
@@ -174,7 +176,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         se->registerHisto( map_dc->GetName(), map_dc );
 
         // Emcal dead map
-        std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for Emcal map" << std::endl;
+	// std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for Emcal map" << std::endl;
         map_emc = new THmulf("map_emc","map_emc");
         map_emc->AddAxis("ypos","ypos", 50, 0, 50);
         map_emc->AddAxis("zpos","zpos", 100, 0, 100);
@@ -194,7 +196,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         runselection = rc->get_IntFlag("RD_RUN_SELECTION", 0);
         systemselection = rc->get_IntFlag("RD_SYSTEM_SELECTION", 0);
         
-        cout<<"run "<<runselection<<" @ system "<<systemselection<<endl;
+	// cout<<"run "<<runselection<<" @ system "<<systemselection<<endl;
 
 	// if ( runselection==14 && systemselection==0 ) cut = new Run14AuAuCut();
 
@@ -203,17 +205,19 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 
     int mPhotonEventQA::InitRun(PHCompositeNode *topNode)
     {
+      std::cout << "mPhotonEventQA::InitRun" << std::endl;
         return 0;
     }
 
     int mPhotonEventQA::process_event(PHCompositeNode *topNode)
     {
+      // std::cout << "mPhotonEventQA::ProcessEvent" << std::endl;
         //real data
         static int ncalls = 0;
         ncalls++;
         if ((ncalls)%1000==0)
         {
-            std::cout << "Event process = " << ncalls << std::endl;
+	   std::cout << "Event process = " << ncalls << std::endl;
         }
         
         //===================================================================
@@ -264,7 +268,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 
     int mPhotonEventQA::GetNodes(PHCompositeNode *topNode)
     {
-        // std::cout<<"mPhotonEventQA::Reading Nodes "<<std::endl;   
+      //std::cout<<"mPhotonEventQA::Reading Nodes "<<std::endl;   
         phg = findNode::getClass<PHGlobal>(topNode,"PHGlobal");
         if( !phg )
         {
@@ -279,26 +283,32 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
             return DISCARDEVENT;;//exit(1);
         }
         
-        trk = findNode::getClass<PHCentralTrack>(topNode,"PHCentralTrack");
+	//trk = findNode::getClass<PHGlobal_CENTRAL>(topNode,"PHGlobal_CENTRAL");                                             
+        //if(!trk )                                                                                                        
+	//{                                                                                                                
+	//  std::cout<<"can't find PHGlobal_CENTRAL "<<std::endl;                                                          
+	//  return DISCARDEVENT;//exit(1);
+	//}
+	trk = findNode::getClass<PHCentralTrack>(topNode,"PHCentralTrack");
         if( !trk )
-        {
-            std::cout<<"can't find PHCentraltrack "<<std::endl;
-            return DISCARDEVENT;//exit(1);
-        }
+	  {
+	    std::cout<<"can't find PHCentraltrack "<<std::endl;
+	    return DISCARDEVENT;//exit(1);
+	  }
         
-        emccont = findNode::getClass<emcClusterContainer>(topNode, "emcClusterContainer");
+	emccont = findNode::getClass<emcClusterContainer>(topNode, "emcClusterContainer");
         if( !emccont )
-        {
+	  {
             std::cout<<"can't find emcClusterContainer "<<std::endl;
-            return DISCARDEVENT;//exit(1);
-        }
-
-        rp = findNode::getClass<ReactionPlaneObject>(topNode, "ReactionPlaneObject");
-        if( !rp )
-        {
-            std::cout<<"can't find ReactionPlaneObject "<<std::endl;
-            return DISCARDEVENT;//exit(1);
-        }
+	    return DISCARDEVENT;//exit(1);
+	  }
+	
+	// rp = findNode::getClass<ReactionPlaneObject>(topNode, "ReactionPlaneObject");
+	// if( !rp )
+	// {
+        //    std::cout<<"can't find ReactionPlaneObject "<<std::endl;
+        //    return DISCARDEVENT;//exit(1);
+	// }
 
         header = findNode::getClass<RunHeader>(topNode,"RunHeader");
         if(!header) cout<<"can't find RunHeader"<<endl;
@@ -308,17 +318,35 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 
     bool mPhotonEventQA::trigger_selection()
     {
-        // Run14@AuAu
-        // 4 - BBCLL1(>1 tubes) narrowvtx
-        // 5 - BBCLL1(>1 tubes)
-        // 6 - BBCLL1(>1 tubes) novertex
-        int TRIGGERBIT = 4;
+        // Run16@dAu
+       
+      // int TRIGGERBIT = 4;
+      // int trigscaled_on = _Trig_ptr->get_lvl1_trigscaled_bit(TRIGGERBIT);     
+      /*
+      unsigned int trigger_scaled = _Trig_ptr->get_lvl1_trigscaled();
+  
+      unsigned int trigger_FVTXNSBBCScentral = 0x00100000;
+      unsigned int trigger_FVTXNSBBCS        = 0x00400000;     
+      unsigned int trigger_BBCLL1narrowcent  = 0x00000008;
+      unsigned int trigger_BBCLL1narrow      = 0x00000010;
+      unsigned int accepted_triggers = 0;
+      // --- Run16dAu200                                                                                                                          
+      if ( runnumber >= 454774 && runnumber <= 455639 ) accepted_triggers = trigger_BBCLL1narrowcent | trigger_BBCLL1narrow;
+      // --- Run16dAu62   
+      if ( runnumber >= 455792 && runnumber <= 456283 ) accepted_triggers = trigger_BBCLL1narrowcent | trigger_BBCLL1narrow;
+      // --- Run16dAu20     
+      if ( runnumber >= 456652 && runnumber <= 457298 ) accepted_triggers = trigger_FVTXNSBBCScentral | trigger_FVTXNSBBCS;
+      // --- Run16dAu39     
+      if ( runnumber >= 457634 && runnumber <= 458167 ) accepted_triggers = trigger_FVTXNSBBCScentral | trigger_FVTXNSBBCS;
 
-        int trigscaled_on = _Trig_ptr->get_lvl1_trigscaled_bit(TRIGGERBIT);
- 
-        if ( !trigscaled_on ) return 0;
-
-        return 1;
+      unsigned int passes_trigger = trigger_scaled & accepted_triggers;
+      if ( passes_trigger == 0 )
+	{
+	  cout << "trigger rejected" << endl;
+	  return 0;
+	}
+      */
+      return 1;
     }
 
     void mPhotonEventQA::run_by_run()
@@ -333,13 +361,13 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         bbczdc->Fill(1.0,percent,bbcqs,bbcqn,bbcz);
 
         // fill bbc rp
-        rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 0, 1));
-        float psi_BBCS = (rpsngl) ? rpsngl->GetPsi() : -9999;
-        rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 1, 1));
-        float psi_BBCN = (rpsngl) ? rpsngl->GetPsi() : -9999;
-        rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 2, 1));
-        float psi_BBC = (rpsngl) ? rpsngl->GetPsi() : -9999;
-        bbcrp->Fill(1.0,psi_BBCN,psi_BBCS,psi_BBC);
+	//  rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 0, 1));
+	// float psi_BBCS = (rpsngl) ? rpsngl->GetPsi() : -9999;
+	// rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 1, 1));
+	// float psi_BBCN = (rpsngl) ? rpsngl->GetPsi() : -9999;
+	// rpsngl = rp->getReactionPlane(RP::calcIdCode(RP::ID_BBC, 2, 1));
+	// float psi_BBC = (rpsngl) ? rpsngl->GetPsi() : -9999;
+	// bbcrp->Fill(1.0,psi_BBCN,psi_BBCS,psi_BBC);
 
         // fill h_ntrk & h_ncharged
         int ntrk = 0; // # of trks pass quality=63 cut
@@ -463,7 +491,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 
     int mPhotonEventQA::End(PHCompositeNode *topNode){
         // write the output trees
-        std::cout<<"creating histos for mPhotonEventQA"<<std::endl;
+      // std::cout<<"creating histos for mPhotonEventQA"<<std::endl;
         
         f = new TFile(OutFileName.c_str(),"RECREATE");
         bbczdc->Write();
@@ -485,7 +513,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         f->Write();
         f->Close();
 
-        std::cout<<"end of End"<<std::endl;
+	// std::cout<<"end of End"<<std::endl;
         return 0;
     }
 

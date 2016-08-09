@@ -1,4 +1,5 @@
 #include "dpReco.h"
+#include "dpUtil.h"
 #include <TFile.h>
 #include <TNtuple.h>
 #include <TMatrixD.h>
@@ -9,144 +10,6 @@
 
 using namespace std;
 
-//======================
-P33::P33(float X, float Y, float Z, float A, float B, float C) : fX(X), fY(Y), fZ(Z) {
-  fDep[0] = A;
-  fDep[1] = B;
-  fDep[2] = C;
-}
-P33::P33(const P33 &other ) {
-  fX = other.fX;
-  fY = other.fY;
-  fZ = other.fZ;
-  fDep[0] = other.fDep[0];
-  fDep[1] = other.fDep[1];
-  fDep[2] = other.fDep[2];
-}
-//======================
-P33_S::P33_S(float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI, int MLEV, int LEV ) : 
-  fX_lo(X_LO), fX_hi(X_HI), fY_lo(Y_LO), fY_hi(Y_HI), fZ_lo(Z_LO), fZ_hi(Z_HI), fLevel(LEV), fMaxLevel(MLEV) {
-  for(unsigned int i=0;i<2;++i)
-    for(unsigned int j=0;j<2;++j)
-      for(unsigned int k=0;k<2;++k)
-	fContainers[i][j][k]=NULL;
-}
-P33_S::~P33_S() {
-  for(unsigned int i=0;i<2;++i)
-    for(unsigned int j=0;j<2;++j)
-      for(unsigned int k=0;k<2;++k)
-	if(fContainers[i][j][k]!=NULL)
-	  delete fContainers[i][j][k];
-}
-void P33_S::AppendList(vector<P33>& point_list, float X_LO, float X_HI,
-		       float Y_LO, float Y_HI, float Z_LO, float Z_HI ) {
-  for(unsigned int i=0;i<2;++i)
-    for(unsigned int j=0;j<2;++j)
-      for(unsigned int k=0;k<2;++k) {
-	if(fContainers[i][j][k]==NULL)
-	  continue;
-	if( (fContainers[i][j][k]->fX_hi<X_LO) ||
-	    (fContainers[i][j][k]->fX_lo>X_HI) ||
-	    (fContainers[i][j][k]->fY_hi<Y_LO) ||
-	    (fContainers[i][j][k]->fY_lo>Y_HI) ||
-	    (fContainers[i][j][k]->fZ_hi<Z_LO) ||
-	    (fContainers[i][j][k]->fZ_lo>Z_HI) )
-	  continue;
-	fContainers[i][j][k]->AppendList( point_list, X_LO, X_HI, Y_LO, Y_HI, Z_LO, Z_HI );
-      }
-}
-//======================
-P33_SE::P33_SE( float X_LO, float X_HI, float Y_LO, float Y_HI, float Z_LO, float Z_HI, int MLEV, int LEV ) : 
-  P33_S( X_LO,X_HI,Y_LO,Y_HI,Z_LO,Z_HI,MLEV,LEV ) {
-}
-
-bool P33_SE::Insert( P33 const& point ) {
-  fPoints.push_back(point);
-  return true;
-}
-void P33_SE::AppendList(vector<P33>& point_list,float X_LO,float X_HI,
-			float Y_LO,float Y_HI,float Z_LO,float Z_HI) {
-  for(unsigned int i=0;i<fPoints.size();++i) {
-    if( (fPoints[i].fX<X_LO) ||
-	(fPoints[i].fX>X_HI) ||
-	(fPoints[i].fY<Y_LO) ||
-	(fPoints[i].fY>Y_HI) ||
-	(fPoints[i].fZ<Z_LO) ||
-	(fPoints[i].fZ>Z_HI) ) 
-      continue;
-    point_list.push_back( fPoints[i] );
-  }
-}
-//======================
-bool P33_S::Insert(P33 const& point) {
-  if( (point.fX < fX_lo) ||
-      (point.fY < fY_lo) ||
-      (point.fZ < fZ_lo) ||
-      (point.fX > fX_hi) ||
-      (point.fY > fY_hi) ||
-      (point.fZ > fZ_hi) )
-    return false;
-  int x_ind = 0;
-  int y_ind = 0;
-  int z_ind = 0;
-  if(point.fX > (fX_lo + 0.5*(fX_hi-fX_lo)))
-    x_ind=1;
-  if(point.fY > (fY_lo + 0.5*(fY_hi-fY_lo)))
-    y_ind=1;
-  if(point.fZ > (fZ_lo + 0.5*(fZ_hi-fZ_lo)))
-    z_ind=1;
-  if( fContainers[x_ind][y_ind][z_ind] == NULL ) {
-    float x_lo_new = fX_lo + (float(x_ind))*0.5*(fX_hi-fX_lo);
-    float x_hi_new = x_lo_new + 0.5*(fX_hi-fX_lo);
-    float y_lo_new = fY_lo + (float(y_ind))*0.5*(fY_hi-fY_lo);
-    float y_hi_new = y_lo_new + 0.5*(fY_hi-fY_lo);
-    float z_lo_new = fZ_lo + (float(z_ind))*0.5*(fZ_hi-fZ_lo);
-    float z_hi_new = z_lo_new + 0.5*(fZ_hi-fZ_lo);
-    if(fLevel < fMaxLevel)
-      fContainers[x_ind][y_ind][z_ind] = new P33_S( x_lo_new,
-						    x_hi_new,
-						    y_lo_new,
-						    y_hi_new,
-						    z_lo_new,
-						    z_hi_new,
-						    fMaxLevel,
-						    fLevel+1 );
-    else
-      fContainers[x_ind][y_ind][z_ind] = new P33_SE(x_lo_new,
-						    x_hi_new,
-						    y_lo_new,
-						    y_hi_new,
-						    z_lo_new,
-						    z_hi_new,
-						    fMaxLevel,
-						    fLevel+1 );
-  }
-  return fContainers[x_ind][y_ind][z_ind]->Insert( point );
-}
-//======================
-LUT::LUT( const char* lookup_file_name ) : alpha_r_z( 0., 0.7, 0., 150., 0., 100., 10 ) {
-  TFile f(lookup_file_name);
-  TNtuple* t=0;
-  f.GetObject("alpha_p_r_phi_theta_z", t);
-  float alpha, p, r, phi, theta, z;
-  t->SetBranchAddress("alpha",&alpha);
-  t->SetBranchAddress("p",&p);
-  t->SetBranchAddress("r",&r);
-  t->SetBranchAddress("phi",&phi);
-  t->SetBranchAddress("theta",&theta);
-  t->SetBranchAddress("z",&z);
-  for(int i=0;i<t->GetEntries();i+=1) {
-    t->GetEntry(i);
-    if ( z < 0.) continue;
-    if ( alpha > 0. ) continue;
-    if ( phi < 0. || phi > TMath::Pi() ) continue;
-    if ( theta < 0. ) continue;
-    P33 point(TMath::Abs(alpha),r,TMath::Abs(z), TMath::Abs(phi), p, TMath::Abs(theta));
-    alpha_r_z.Insert(point);
-  }
-  f.Close();
-}
-//======================
 dpReco::dpReco( const char* lookup_file_name ) {
   fLUT = new LUT(lookup_file_name);
   fMaxR = 30.;
@@ -174,7 +37,7 @@ float dpReco::EvaluateFit( TMatrixD& beta, float alpha, float r, float z_DC_m_z_
   return retval;
 }
 
-void dpReco::RemoveOutliers( int ind, TMatrixD& beta, vector<P33>& points_temp, vector<P33>& points ) {
+void dpReco::RemoveOutliers( int ind, TMatrixD& beta, vector<dpOBJA>& points_temp, vector<dpOBJA>& points ) {
   points.clear();
 
   float sig = 0.;
@@ -193,7 +56,7 @@ void dpReco::RemoveOutliers( int ind, TMatrixD& beta, vector<P33>& points_temp, 
     }
 }
 
-TMatrixD dpReco::PerformFit( int ind, vector<P33> const& points )
+TMatrixD dpReco::PerformFit( int ind, vector<dpOBJA> const& points )
 {
   TMatrixD X( points.size(), 10 );
   TMatrixD y( points.size(), 1  );
@@ -227,7 +90,7 @@ TMatrixD dpReco::PerformFit( int ind, vector<P33> const& points )
 // 0 <--> phi
 // 1 <--> p
 // 2 <--> theta
-float dpReco::LookupFit( float alpha, float r, float z_DC_m_z_ver, int ind, P33_S& alpha_r_z, float& lookup_ind ) {
+float dpReco::LookupFit( float alpha, float r, float z_DC_m_z_ver, int ind, dpOBJB& alpha_r_z, float& lookup_ind ) {
   // r can be -9999 when find_conv() fails
   if ( r<0 || r>fMaxR ) { lookup_ind = -9999.; return 0; }
   if ( alpha<0 || z_DC_m_z_ver<0 ) {
@@ -239,7 +102,7 @@ float dpReco::LookupFit( float alpha, float r, float z_DC_m_z_ver, int ind, P33_
   float lookup_alpha_delta = fLookupAlphaDeltaBase;
   float lookup_r_delta = fLookupRDeltaBase;
   float lookup_z_delta = fLookupZDeltaBase;
-  vector<P33> points;
+  vector<dpOBJA> points;
   alpha_r_z.AppendList( points, alpha - lookup_alpha_delta, alpha + lookup_alpha_delta,
 			 r - lookup_r_delta, r + lookup_r_delta,
 			 z_DC_m_z_ver - lookup_z_delta, z_DC_m_z_ver + lookup_z_delta );
@@ -250,7 +113,7 @@ float dpReco::LookupFit( float alpha, float r, float z_DC_m_z_ver, int ind, P33_
 	// p0 + p1*x + p2*y + p3*z + p4*x^2 + p5*xy + p6*xz + p7*y^2 + p8*yz + p9*z^2
   TMatrixD beta = PerformFit( ind, points );
   {
-    vector<P33> points_temp = points;
+    vector<dpOBJA> points_temp = points;
     RemoveOutliers( ind, beta, points_temp, points );
   }
   if( points.size() < 20 ) {
@@ -263,7 +126,7 @@ float dpReco::LookupFit( float alpha, float r, float z_DC_m_z_ver, int ind, P33_
 }
 
 
-bool dpReco::ProjectPhi( float alpha, float phiDC, float r, float z_DC_m_z_ver, P33_S& alpha_r_z, float& phi_r ) {
+bool dpReco::ProjectPhi( float alpha, float phiDC, float r, float z_DC_m_z_ver, dpOBJB& alpha_r_z, float& phi_r ) {
   //DC coord sys: phi -0.5Pi~1.5Pi
   if ( (r<0) || (r>fMaxR) ) { phi_r=-9999.; return 0; }
   float lookup_phi = 0;
@@ -301,7 +164,7 @@ bool dpReco::ProjectPhi( float alpha, float phiDC, float r, float z_DC_m_z_ver, 
 }
 
 bool dpReco::ProjectTheta( float alpha, float r, float z_DC_m_z_ver,
-				    P33_S& alpha_r_z, float& theta_r ) {
+				    dpOBJB& alpha_r_z, float& theta_r ) {
   //DC coord sys: phi -0.5Pi~1.5Pi
   if ( (r<0) || (r>fMaxR) ) {
     theta_r=-9999.;
@@ -326,7 +189,7 @@ bool dpReco::ProjectTheta( float alpha, float r, float z_DC_m_z_ver,
 bool dpReco::DeltaPhi( float alpha_e, float alpha_p,
 				float phi_e, float phi_p,
 				float r, float z_DC_m_z_ver_e, float z_DC_m_z_ver_p,
-				P33_S& alpha_r_z, float& dphi ) {
+				dpOBJB& alpha_r_z, float& dphi ) {
   float phir_e, phir_p;
   if( !ProjectPhi(alpha_e, phi_e, r, z_DC_m_z_ver_e, alpha_r_z, phir_e) ||
       !ProjectPhi(alpha_p, phi_p, r, z_DC_m_z_ver_p, alpha_r_z, phir_p) ) {
@@ -343,7 +206,7 @@ bool dpReco::DeltaPhi( float alpha_e, float alpha_p,
 bool dpReco::FindR( float alpha_e, float alpha_p,
 			    float phi_e, float phi_p,
 			    float z_DC_m_z_ver_e, float z_DC_m_z_ver_p,
-			    P33_S& alpha_r_z, float& r_conv ) {
+			    dpOBJB& alpha_r_z, float& r_conv ) {
   // assumption: DeltaPhi(r) should be monotomic increase within [0, fMaxR]
   // hence |DeltaPhi(r)| should be unimodal
   // use godel section search to find the minimum of |DeltaPhi(r)| within range [0, fMaxR]

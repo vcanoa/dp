@@ -12,7 +12,7 @@
 
 #include "PHCompositeNode.h"
 #include "PHIODataNode.h"
-//#include "dpReco.h"
+#include "dpReco.h"
 
 #include "phool.h"
 
@@ -55,7 +55,7 @@ mDstToPhotonEvent::mDstToPhotonEvent(char *outfile, char* lookup_file) :
   fTree(NULL),
   fEvent(NULL)
 {
-  //fReconstruction = NULL;//new dpReco(lookup_file);
+  fReconstruction = new dpReco(lookup_file);
   fOutFileName = outfile;
   if(fOutFileName.Length()>0)
     fTree = new TTree("T","one tree to analyze them all");
@@ -188,12 +188,11 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
     for(int ip=0; ip!=fEvent->GetNPtracks(); ++ip) { // positrons
       ele = fEvent->GetNtrack(in); // get electron
       pos = fEvent->GetPtrack(ip); // get positron
-      CNTDE de; // dielectron
-      //fReconstruction->findIntersection(ele,pos,de,fEvent->GetVtxZ()); // FIXME vertexZ
-
+      CNTDE *de = new CNTDE(); // dielectron
+      fReconstruction->findIntersection(ele,pos,de,fEvent->GetVtxZ()); // FIXME vertexZ
       // PAIR CUTS
-
       atLeastOneFound = true;
+      delete de;
     }
   if(!atLeastOneFound) return DISCARDEVENT;
 

@@ -8,7 +8,7 @@
 #include "SubsysReco.h"
 
 #include "PhotonEvent.h"
-//#include "dpReco.h"
+#include "dpReco.h"
 
 class Fun4AllServer;
 class CentralityReco;
@@ -44,7 +44,7 @@ class mDstToPhotonEvent : public SubsysReco {
   TTree *fTree;
  
   PhotonEvent *fEvent;
-  //dpReco *fReconstruction;
+  dpReco *fReconstruction;
   
   TString fOutFileName;
   TString fLookupFileName; 

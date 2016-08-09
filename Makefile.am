@@ -15,7 +15,9 @@ EMCC.h \
 CNTE.h \
 CNTDE.h \
 mDstToPhotonEvent.h \
-mPhotonEventQA.h
+mPhotonEventQA.h \
+dpUtil.h \
+dpReco.h
 
 libDPRun16dAu_la_SOURCES = \
 PhotonEvent.cxx \
@@ -24,6 +26,8 @@ CNTE.cxx \
 CNTDE.cxx \
 mDstToPhotonEvent.cxx \
 mPhotonEventQA.C \
+dpUtil.cxx \
+dpReco.cxx \
 DPRun16dAu_Dict.C 
 
 libDPRun16dAu_la_LIBADD = \
@@ -53,6 +57,8 @@ DPRun16dAu_Dict.C: \
   CNTDE.h \
   mDstToPhotonEvent.h \
   mPhotonEventQA.h \
+  dpUtil.h \
+  dpReco.h \
   DPRun16dAuLinkDef.h 
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

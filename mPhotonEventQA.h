@@ -27,7 +27,6 @@ class ReactionPlaneObject;
 class ReactionPlaneSngl;
 class RunHeader;
 
-
 class CNTDE;
 class CNTE;
 class EMCC;
