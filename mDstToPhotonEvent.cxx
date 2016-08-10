@@ -138,7 +138,7 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
   // event.SetSvxZ( vtxr.getZ() );
 
   // EVENT CUTS
-  
+  if(cnttrk->get_npart()<2)return DISCARDEVENT;
   // TRACKS
   for (int t=0; t!=int( cnttrk->get_npart() ); ++t) {
     CNTE track;
@@ -175,12 +175,25 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
     track.SetYsect( cnttrk->get_ysect(t) );
     track.SetZsect( cnttrk->get_zsect(t) );
     //TRACK CUTS
-    if(track.GetCharge()==1)
-      fEvent->AddNTrack( track );
-    if(track.GetCharge()==-1)
-      fEvent->AddPTrack( track );
+    float Z_GLOBAL=75,EMCDZ=20,EMCDPHI=0.05,N0=1,DISP=5,CHI2_NEP0=10,PROB=0.01;//DEP0=-2,DEP1=2;
+    if ( ((cnttrk->get_quality(t)==31) || (cnttrk->get_quality(t)==51) || (cnttrk->get_quality(t)==63 ))
+	 && (fabs(cnttrk->get_zed(t))< Z_GLOBAL)
+	 && (fabs(cnttrk->get_emcdz(t))< EMCDZ)
+	 && (fabs(cnttrk->get_emcdphi(t))< EMCDPHI)
+	 && (cnttrk->get_n0(t)> N0)
+	 && (cnttrk->get_disp(t)<DISP)
+	 && ((cnttrk->get_chi2(t)/cnttrk->get_npe0(t))<CHI2_NEP0)
+	 && (cnttrk->get_prob(t)>PROB)){
+	 // && (cnttrk->get_dep(t)>DEP0)
+	 // && (cnttrk->get_dep(t)< DEP1)){
+      //after cut do this
+      if(track.GetCharge()==1)
+	fEvent->AddNTrack( track );
+      if(track.GetCharge()==-1)
+	fEvent->AddPTrack( track );
+    }
   }
-
+  
   // PAIRS
   CNTE *ele, *pos;
   bool atLeastOneFound = false;
@@ -211,8 +224,9 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
     cluster.SetEmcdphi( emc->emctrkdphi() );
 
     // CLUSTER CUTS
-
-    fEvent->AddCluster( cluster );
+    if ( emc->chi2()< 3 ){
+      fEvent->AddCluster( cluster );
+    }
   }
 
   if(fOutFileName.Length()>0) fTree->Fill();

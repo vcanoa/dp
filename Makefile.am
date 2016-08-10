@@ -14,21 +14,21 @@ PhotonEvent.h \
 EMCC.h \
 CNTE.h \
 CNTDE.h \
-mDstToPhotonEvent.h \
-mPhotonEventQA.h \
 dpUtil.h \
-dpReco.h
+dpReco.h \
+mDstToPhotonEvent.h \
+mPhotonEventQA.h
 
 libDPRun16dAu_la_SOURCES = \
 PhotonEvent.cxx \
 EMCC.cxx \
 CNTE.cxx \
 CNTDE.cxx \
-mDstToPhotonEvent.cxx \
-mPhotonEventQA.C \
 dpUtil.cxx \
 dpReco.cxx \
-DPRun16dAu_Dict.C 
+mDstToPhotonEvent.cxx \
+mPhotonEventQA.C \
+DPRun16dAu_Dict.C
 
 libDPRun16dAu_la_LIBADD = \
 -L$(libdir) \
@@ -55,10 +55,10 @@ DPRun16dAu_Dict.C: \
   EMCC.h \
   CNTE.h \
   CNTDE.h \
-  mDstToPhotonEvent.h \
-  mPhotonEventQA.h \
   dpUtil.h \
   dpReco.h \
+  mDstToPhotonEvent.h \
+  mPhotonEventQA.h \
   DPRun16dAuLinkDef.h 
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

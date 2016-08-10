@@ -375,7 +375,17 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         {
             if ( trk->get_quality(itrk_reco)==63 ) ++ntrk;
             //cuts for single electron cut
-	    float Z_GLOBAL=75,EMCDZ=20,EMCDPHI=0.05,N0=1,DISP=5,CHI2_NEP0=10,PROB=0.01,DEP0=-2,DEP1=2;
+	    cout<<"Z_GLOBAL "<<fabs(trk->get_zed(itrk_reco))<<"|"; 
+	    cout <<"EMCDZ "<<fabs(trk->get_emcdz(itrk_reco))<<"|";
+	    cout<<"EMCDPHI "<<fabs(trk->get_emcdphi(itrk_reco))<<"|";
+	    cout<<"N0 "<< trk->get_n0(itrk_reco)<<"|";
+	    cout<<"DISP "<< trk->get_disp(itrk_reco)<<"|";
+	    cout<<"CHI2_NEP0 "<<trk->get_chi2(itrk_reco)/trk->get_npe0(itrk_reco)<<"|";
+	    cout<<"PROB "<<trk->get_prob(itrk_reco)<<"|";
+	    cout<<"DEP0 "<<trk->get_dep(itrk_reco)<<"|";
+	    cout<<"DEP1 "<<trk->get_dep(itrk_reco)<<endl;
+
+	    float Z_GLOBAL=75,EMCDZ=20,EMCDPHI=0.05,N0=1,DISP=5,CHI2_NEP0=10,PROB=0.01;//DEP0=-2,DEP1=2;
 	    if ( ((trk->get_quality(itrk_reco)==31) || (trk->get_quality(itrk_reco)==51) || (trk->get_quality(itrk_reco)==63 ))
 		 && (fabs(trk->get_zed(itrk_reco))< Z_GLOBAL)
 		 && (fabs(trk->get_emcdz(itrk_reco))< EMCDZ)
@@ -383,12 +393,12 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 		 && (trk->get_n0(itrk_reco)> N0)
 		 && (trk->get_disp(itrk_reco)<DISP)
 		 && ((trk->get_chi2(itrk_reco)/trk->get_npe0(itrk_reco))<CHI2_NEP0)
-		 && (trk->get_prob(itrk_reco)>PROB)
-		 && (trk->get_dep(itrk_reco)>DEP0) 
-		 && (trk->get_dep(itrk_reco)< DEP1) )
+		 && (trk->get_prob(itrk_reco)>PROB))
+		 // && (trk->get_dep(itrk_reco)>DEP0) 
+		 // && (trk->get_dep(itrk_reco)< DEP1) )
 	    //if ( cut->applySingleCut(trk, itrk_reco) )
             {//quality cut and loose single cuts
-                h_ncharged->Fill( trk->get_charge(itrk_reco) );
+                h_ncharged->Fill(trk->get_charge(itrk_reco));
             }
         }
         h_ntrk->Fill( ntrk ); // total counts in one file will be the total number of events
