@@ -44,9 +44,9 @@ class dpOBJB {
 class dpOBJAB: public dpOBJB {
  public:
   dpOBJAB() {}
+  virtual ~dpOBJAB() {}
   dpOBJAB( float X_LO, float X_HI, float Y_LO, float Y_HI,
 	   float Z_LO, float Z_HI, int MLEV, int LEV=0 );
-  virtual ~dpOBJAB();
   virtual bool Insert( dpOBJA const& point );
   virtual void AppendList( vector<dpOBJA>& point_list,
 			   float X_LO, float X_HI, float Y_LO, float Y_HI,

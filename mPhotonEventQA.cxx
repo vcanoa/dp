@@ -87,7 +87,9 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         h_ncharged = NULL;
         h_nclust = NULL;
         h_nemc = NULL;
-        
+	h_ntrkphi = NULL;
+	dc_phipt=NULL;
+
         map_dc = NULL;
         map_emc = NULL;
         // map_rich = NULL;
@@ -165,6 +167,17 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         se->registerHisto( h_nclust->GetName(), h_nclust );
         h_nemc = new TH1F("h_nemc","Emcal Photon Multiplicity",8,-0.5,7.5);
         se->registerHisto( h_nemc->GetName(), h_nemc );
+	h_ntrkphi = new TH1F("h_ntrkphi","Track phi",200,-TMath::Pi()/2, 3*TMath::Pi()/2);
+	se->registerHisto( h_ntrkphi->GetName(), h_ntrkphi );
+	
+	//dc checks
+	dc_phipt = new THmulf("dc_phipt","dc_phipt");
+	dc_phipt->AddAxis("alpha","alpha", 100, -0.9, 0.9); // pt lower limit: 0.2GeV
+	dc_phipt->AddAxis("pt","pt",100, 0., 20.);
+	dc_phipt->AddAxis("phi","phi", 200, -TMath::Pi()/2, 3*TMath::Pi()/2);
+	dc_phipt->AddAxis("arm","arm", 2, -0.5, 1.5);
+	dc_phipt->AddAxis("side","side", 2, -0.5, 1.5);
+	se->registerHisto( dc_phipt->GetName(), dc_phipt );
 
         // DC dead map (including PC1 effect)
 	// std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for DC map" << std::endl;
@@ -196,7 +209,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         runselection = rc->get_IntFlag("RD_RUN_SELECTION", 0);
         systemselection = rc->get_IntFlag("RD_SYSTEM_SELECTION", 0);
         
-	// cout<<"run "<<runselection<<" @ system "<<systemselection<<endl;
+	cout<<"run "<<runselection<<" @ system "<<systemselection<<endl;
 
 	// if ( runselection==14 && systemselection==0 ) cut = new Run14AuAuCut();
 
@@ -211,7 +224,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 
     int mPhotonEventQA::process_event(PHCompositeNode *topNode)
     {
-      // std::cout << "mPhotonEventQA::ProcessEvent" << std::endl;
+      //std::cout << "mPhotonEventQA::ProcessEvent" << std::endl;
         //real data
         static int ncalls = 0;
         ncalls++;
@@ -372,18 +385,23 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         // fill h_ntrk & h_ncharged
         int ntrk = 0; // # of trks pass quality=63 cut
         for (int itrk_reco = 0; itrk_reco < (int)(trk->get_npart()); ++itrk_reco)         
-        {
+	  {
             if ( trk->get_quality(itrk_reco)==63 ) ++ntrk;
             //cuts for single electron cut
-	    cout<<"Z_GLOBAL "<<fabs(trk->get_zed(itrk_reco))<<"|"; 
-	    cout <<"EMCDZ "<<fabs(trk->get_emcdz(itrk_reco))<<"|";
-	    cout<<"EMCDPHI "<<fabs(trk->get_emcdphi(itrk_reco))<<"|";
-	    cout<<"N0 "<< trk->get_n0(itrk_reco)<<"|";
-	    cout<<"DISP "<< trk->get_disp(itrk_reco)<<"|";
-	    cout<<"CHI2_NEP0 "<<trk->get_chi2(itrk_reco)/trk->get_npe0(itrk_reco)<<"|";
-	    cout<<"PROB "<<trk->get_prob(itrk_reco)<<"|";
-	    cout<<"DEP0 "<<trk->get_dep(itrk_reco)<<"|";
-	    cout<<"DEP1 "<<trk->get_dep(itrk_reco)<<endl;
+	    // cout<<"Z_GLOBAL "<<fabs(trk->get_zed(itrk_reco))<<"|"; 
+	    // cout <<"EMCDZ "<<fabs(trk->get_emcdz(itrk_reco))<<"|";
+	    // cout<<"EMCDPHI "<<fabs(trk->get_emcdphi(itrk_reco))<<"|";
+	    // cout<<"N0 "<< trk->get_n0(itrk_reco)<<"|";
+	    //cout<<"DISP "<< trk->get_disp(itrk_reco)<<"|";
+	    //cout<<"CHI2_NEP0 "<<trk->get_chi2(itrk_reco)/trk->get_npe0(itrk_reco)<<"|";
+	    //	    cout<<"PROB "<<trk->get_prob(itrk_reco)<<"|";
+	    // cout<<"DEP0 "<<trk->get_dep(itrk_reco)<<"|";
+	    // cout<<"DEP1 "<<trk->get_dep(itrk_reco)<<endl;
+	    
+	    if (( trk->get_quality(itrk_reco)==63 || trk->get_quality(itrk_reco)==31 || trk->get_quality(itrk_reco)==51) ){
+	      h_ntrkphi->Fill(trk->get_phi(itrk_reco));
+	    }
+
 
 	    float Z_GLOBAL=75,EMCDZ=20,EMCDPHI=0.05,N0=1,DISP=5,CHI2_NEP0=10,PROB=0.01;//DEP0=-2,DEP1=2;
 	    if ( ((trk->get_quality(itrk_reco)==31) || (trk->get_quality(itrk_reco)==51) || (trk->get_quality(itrk_reco)==63 ))
@@ -394,15 +412,15 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 		 && (trk->get_disp(itrk_reco)<DISP)
 		 && ((trk->get_chi2(itrk_reco)/trk->get_npe0(itrk_reco))<CHI2_NEP0)
 		 && (trk->get_prob(itrk_reco)>PROB))
-		 // && (trk->get_dep(itrk_reco)>DEP0) 
-		 // && (trk->get_dep(itrk_reco)< DEP1) )
-	    //if ( cut->applySingleCut(trk, itrk_reco) )
-            {//quality cut and loose single cuts
+	      // && (trk->get_dep(itrk_reco)>DEP0) 
+	      // && (trk->get_dep(itrk_reco)< DEP1) )
+	      //if ( cut->applySingleCut(trk, itrk_reco) )
+	      {//quality cut and loose single cuts
                 h_ncharged->Fill(trk->get_charge(itrk_reco));
-            }
-        }
+	      }
+	  }
         h_ntrk->Fill( ntrk ); // total counts in one file will be the total number of events
-
+	
         // fill h_nclust & h_nemc
         h_nclust->Fill( emccont->size() ); // total counts in one file will be the total number of events
         for (int iclus = 0; iclus < (int)(emccont->size()); iclus++)
@@ -466,17 +484,24 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 
     void mPhotonEventQA::DC_map()
     {
-        int Z_GLOBAL=75;
-        for (int itrk_reco = 0; itrk_reco < (int)(trk->get_npart()); ++itrk_reco)         
+      int Z_GLOBAL=75;
+      for (int itrk_reco = 0; itrk_reco < (int)(trk->get_npart()); ++itrk_reco)         
         {
-            if ( trk->get_quality(itrk_reco)==63 && fabs(trk->get_zed(itrk_reco))<Z_GLOBAL )
+	  
+	  // if (fabs(trk->get_zed(itrk_reco))<Z_GLOBAL )
+	  //if ( trk->get_quality(itrk_reco)==63 && fabs(trk->get_zed(itrk_reco))<Z_GLOBAL )
+	  if (( trk->get_quality(itrk_reco)==63 || trk->get_quality(itrk_reco)==31 || trk->get_quality(itrk_reco)==51)&& fabs(trk->get_zed(itrk_reco))<Z_GLOBAL )
             {
-                float board = get_board( trk->get_phi(itrk_reco) );
-                float alpha = trk->get_alpha(itrk_reco);
-                int arm  = trk->get_dcarm(itrk_reco); // arm 0 <--> e/w not sure yet
-                int side = (int)( trk->get_zed(itrk_reco)>0 ); // side 0 <--> z>0
-                map_dc->Fill(1.0, board, alpha, arm, side);             
-            }
+	      float board = get_board( trk->get_phi(itrk_reco) );
+	      float alpha = trk->get_alpha(itrk_reco);
+	      int arm  = trk->get_dcarm(itrk_reco); // arm 0 <--> e/w not sure yet
+	      int side = (int)( trk->get_zed(itrk_reco)>0 ); // side 0 <--> z>0
+	      map_dc->Fill(1.0, board, alpha, arm, side);
+	      double px = trk->get_px(itrk_reco);
+	      double py = trk->get_py(itrk_reco);
+	      double pT = sqrt(px*px + py*py);
+	      dc_phipt->Fill(1.0,alpha,pT,trk->get_phi(itrk_reco),arm,side);
+	    }
         }
     }
 
@@ -512,9 +537,11 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         emcdz->Write();
 
         h_ntrk->Write();
+	h_ntrkphi->Write();
         h_ncharged->Write();
         h_nclust->Write();
         h_nemc->Write();
+	dc_phipt->Write();
 
         map_dc->Write();
         map_emc->Write();

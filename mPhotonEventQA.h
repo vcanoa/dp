@@ -83,7 +83,9 @@ class mPhotonEventQA: public SubsysReco
   TH1F* h_ncharged; // electron/positron multiplicity
   TH1F* h_nclust; // cluster mulitiplicity
   TH1F* h_nemc; // emc photon multiplicity
-  
+  TH1F* h_ntrkphi; // trk phi
+  THmulf* dc_phipt;  //dc more checks
+
   // dead maps
   THmulf* map_dc;
   THmulf* map_emc;
