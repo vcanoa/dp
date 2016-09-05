@@ -38,6 +38,7 @@ class CNTE {
   
  public:
   CNTE();
+  CNTE(const CNTE &source);
   virtual ~CNTE();
   
   int   GetDCarm()     const { return fDCarm; };
