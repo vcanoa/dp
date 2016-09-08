@@ -1,6 +1,6 @@
 void Run_DPRun16dAu(const char *outFile = "dummy.root")
 {
-    gSystem->Setenv("ODBCINI","/opt/phenix/etc/odbc.ini.test");	    
+    gSystem->Setenv("ODBCINI","/opt/phenix/etc/odbc.ini.mirror");	    
     gSystem->Load("libDPRun16dAu.so");
     gSystem->Load("libTOAD");
     
@@ -11,11 +11,11 @@ void Run_DPRun16dAu(const char *outFile = "dummy.root")
     toad_loader.SetVerbosity(4);
     string lookupfile_location = toad_loader.location("lookup_3D.root");
     
-    //mDstToPhotonEvent *rd = new mDstToPhotonEvent(outFile, lookupfile_location.c_str());
-    //se->registerSubsystem( rd );
+    mDstToPhotonEvent *rd = new mDstToPhotonEvent(outFile, lookupfile_location.c_str());
+    se->registerSubsystem( rd );
 
-    mPhotonEventQA *qa = new mPhotonEventQA(outFile);
-    se->registerSubsystem( qa );
+    //mPhotonEventQA *qa = new mPhotonEventQA(outFile);
+    //se->registerSubsystem( qa );
 }
 void InputData(vector<string> &indata)
 {

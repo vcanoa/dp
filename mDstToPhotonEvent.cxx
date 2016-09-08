@@ -45,7 +45,7 @@
 
 #include "PhotonEvent.h"
 #include "PHPhotonEvent.h"
-
+//#include "Run16dAuCut.h"
 #include "mDstToPhotonEvent.h"
 
 //=============================================================
@@ -54,13 +54,14 @@ mDstToPhotonEvent::mDstToPhotonEvent(char *outfile, char* lookup_file) :
   fFile(NULL),
   fTree(NULL),
   fEvent(NULL)
+  // docut(NULL)
 {
   fReconstruction = new dpReco(lookup_file);
   fOutFileName = outfile;
   if(fOutFileName.Length()>0)
     fTree = new TTree("T","one tree to analyze them all");
   fLookupFileName = lookup_file;
-  std::cout << "mDstToPhotonEvent::CTOR()" << std::endl;
+  // std::cout << "mDstToPhotonEvent::CTOR()" << std::endl;
   return;
 }
 //=============================================================
@@ -68,6 +69,7 @@ mDstToPhotonEvent::~mDstToPhotonEvent()
 {
   if(fTree) delete fTree;
   if(fFile) delete fFile;
+  // if(docut) delete docut;
 }
 //=============================================================
 int mDstToPhotonEvent::Init(PHCompositeNode *)
@@ -92,7 +94,8 @@ int mDstToPhotonEvent::InitRun(PHCompositeNode *topNode)
     fTree->Branch("PhotonEvent",fEvent);
     fTree->Reset();
   }
-  std::cout << "mDstToPhotonEvent::INITRUN()" << std::endl;
+  // docut=new Run16dAuCut();
+  //std::cout << "mDstToPhotonEvent::INITRUN()" << std::endl;
   return 0;
 }
 //=============================================================
@@ -139,6 +142,25 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
 
   // EVENT CUTS
   if(cnttrk->get_npart()<2)return DISCARDEVENT;
+  //trigger selection
+  unsigned int trigger_scaled = _Trig_ptr->get_lvl1_trigscaled();
+  unsigned int trigger_FVTXNSBBCScentral = 0x00100000;
+  unsigned int trigger_FVTXNSBBCS        = 0x00400000;
+  unsigned int trigger_BBCLL1narrowcent  = 0x00000008;
+  unsigned int trigger_BBCLL1narrow      = 0x00000010;
+  unsigned int accepted_triggers = 0;
+  int runnumber=header->get_RunNumber();
+  // --- Run16dAu200                                                                                   
+  if ( runnumber >= 454774 && runnumber <= 455639 ) accepted_triggers = trigger_BBCLL1narrowcent | trigger_BBCLL1narrow;
+  // --- Run16dAu62                                                                                                        
+  if ( runnumber >= 455792 && runnumber <= 456283 ) accepted_triggers = trigger_BBCLL1narrowcent | trigger_BBCLL1narrow;
+  // --- Run16dAu20                                                                                                        
+  if ( runnumber >= 456652 && runnumber <= 457298 ) accepted_triggers = trigger_FVTXNSBBCScentral | trigger_FVTXNSBBCS;
+  // --- Run16dAu39                                                                                                        
+  if ( runnumber >= 457634 && runnumber <= 458167 ) accepted_triggers = trigger_FVTXNSBBCScentral | trigger_FVTXNSBBCS;
+  unsigned int trigscaled_on = trigger_scaled & accepted_triggers;
+  if(!trigscaled_on)return DISCARDEVENT;
+
   // TRACKS
   for (int t=0; t!=int( cnttrk->get_npart() ); ++t) {
     CNTE track;
@@ -184,19 +206,23 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
 	 && (cnttrk->get_disp(t)<DISP)
 	 && ((cnttrk->get_chi2(t)/cnttrk->get_npe0(t))<CHI2_NEP0)
 	 && (cnttrk->get_prob(t)>PROB)){
-	 // && (cnttrk->get_dep(t)>DEP0)
+	 // &&(cnttrk->get_dep(t)>DEP0)
 	 // && (cnttrk->get_dep(t)< DEP1)){
-      //after cut do this
-      if(track.GetCharge()==1)
-	fEvent->AddNTrack( track );
-      if(track.GetCharge()==-1)
-	fEvent->AddPTrack( track );
+    //after cut do this
+      if(track.GetCharge()==1)fEvent->AddNTrack( track );
+      if(track.GetCharge()==-1)fEvent->AddPTrack( track );
     }
   }
   
   // PAIRS
   CNTE *ele, *pos;
   bool atLeastOneFound = false;
+  float PHIV=0.1;
+  float DZ_DC=4;
+  float R_CONV[2];
+  R_CONV[0]=1;
+  R_CONV[1]=29;
+  float DPHI_CONV=0.01;//original 0.005 for AuAu
   for(int in=0; in!=fEvent->GetNEtracks(); ++in) // electrons
     for(int ip=0; ip!=fEvent->GetNPtracks(); ++ip) { // positrons
       ele = fEvent->GetNtrack(in); // get electron
@@ -204,6 +230,17 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
       CNTDE *de = new CNTDE(); // dielectron
       fReconstruction->findIntersection(ele,pos,de,fEvent->GetVtxZ()); // FIXME vertexZ
       // PAIR CUTS
+      float phiv = getPhiv(ele->GetPx(),ele->GetPy(),ele->GetPz(), pos->GetPx(), pos->GetPy(), pos->GetPz() );
+      if ( fabs(phiv-TMath::Pi())>=PHIV ) continue; // phiv cut                          
+      if ( fabs(ele->GetZed()-pos->GetZed())>=DZ_DC ) continue;//dz cut
+      //conversion pair check
+      float radius_r = de->GetR();
+      float dphi_r   = de->GetEphi()-de->GetPphi();
+      if ( dphi_r>TMath::Pi() )  dphi_r = 2*TMath::Pi()-dphi_r; // 1.3pi->0.7pi
+      if ( dphi_r<-TMath::Pi() ) dphi_r = -2*TMath::Pi()-dphi_r; // -1.3pi->-0.7pi
+      // float dtheta_r = pair.GetThetaElectron()-pair.GetThetaPositron();
+      // std::cout << " VEROPAIR " << radius_r << " " << dphi_r << std::endl;
+      if ( radius_r<=R_CONV[0] || radius_r>=R_CONV[1] || fabs(dphi_r)>=DPHI_CONV) continue;
       atLeastOneFound = true;
       delete de;
     }
@@ -234,9 +271,52 @@ int mDstToPhotonEvent::process_event(PHCompositeNode *topNode)
   return 0;
 }
 //=============================================================
+float mDstToPhotonEvent::getPhiv(float px_e, float py_e, float pz_e, float px_p, float py_p, float pz_p)
+{
+  TLorentzVector p1;
+  TLorentzVector p2;
+  TLorentzVector pair;
+  double Me=0.000510998918;
+  double Me2=Me*Me;
+  p1.SetX(px_e);
+  p1.SetY(py_e);
+  p1.SetZ(pz_e);
+  p1.SetE(sqrt(pow(p1.P(),2) + Me2));
+  p2.SetX(px_p);
+  p2.SetY(py_p);
+  p2.SetZ(pz_p);
+  p2.SetE(sqrt(pow(p2.P(),2) + Me2));
+  pair = p1 + p2; // pair corresponds to photon if the pair matches                                                     
+
+  TVector3 P1, P2, Photon, z, v, u, w, wc;
+  z.SetX(0);
+  z.SetY(0);
+  z.SetZ(1); // unit vector along z                                                                                     
+
+  P1.SetX(px_e);
+  P1.SetY(py_e);
+  P1.SetZ(pz_e);
+
+  P2.SetX(px_p);
+  P2.SetY(py_p);
+  P2.SetZ(pz_p);
+
+  Photon.SetX(pair.Px());
+  Photon.SetY(pair.Py());
+  Photon.SetZ(pair.Pz());
+
+  v = (P1.Cross(P2)).Unit(); // unit vector v corresponds to the unit vector of the cross product of ep pair            
+  u = Photon.Unit();
+  w = (u.Cross(v)).Unit();
+  wc = (u.Cross(z)).Unit();
+
+  return acos(-w.Dot(wc));
+}
+
+//=============================================================
 int mDstToPhotonEvent::End(PHCompositeNode *topNode)
 {
-  std::cout<<"mDstToPhotonEvent::End() ==> Terminating... "<<std::endl;
+  //std::cout<<"mDstToPhotonEvent::End() ==> Terminating... "<<std::endl;
   if(fOutFileName.Length()>0) {
     std::cout << "FileName: " << fOutFileName.Data() << std::endl;
     fFile = new TFile(fOutFileName.Data(),"RECREATE");
@@ -244,6 +324,6 @@ int mDstToPhotonEvent::End(PHCompositeNode *topNode)
     fFile->Write();
     fFile->Close();
   }
-  std::cout<<"[DONE]"<<std::endl;
+  //std::cout<<"[DONE]"<<std::endl;
   return 0;
 }

@@ -89,12 +89,12 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         h_nemc = NULL;
 	h_ntrkphi = NULL;
 	dc_phipt=NULL;
+	dc_zed=NULL;
 
         map_dc = NULL;
         map_emc = NULL;
         // map_rich = NULL;
-        runnumber = 0;
-        runselection = 0;
+	runselection = 0;
         systemselection = 0;
 
         OutFileName = outfile;
@@ -179,6 +179,14 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 	dc_phipt->AddAxis("side","side", 2, -0.5, 1.5);
 	se->registerHisto( dc_phipt->GetName(), dc_phipt );
 
+	dc_zed = new THmulf("dc_zed","dc_zed");
+	dc_zed->AddAxis("theta","theta", 100, 0, 2*TMath::Pi()); // pt lower limit: 0.2GeV
+	dc_zed->AddAxis("zed","zed",200, -100, 100);
+	dc_zed->AddAxis("phi","phi", 200, -TMath::Pi()/2, 3*TMath::Pi()/2);
+	dc_zed->AddAxis("arm","arm", 2, -0.5, 1.5);
+	dc_zed->AddAxis("side","side", 2, -0.5, 1.5);
+	se->registerHisto( dc_zed->GetName(), dc_zed);
+
         // DC dead map (including PC1 effect)
 	// std::cout << "mPhotonEventQA::Init: " << "Book multi-histogram for DC map" << std::endl;
         map_dc = new THmulf("map_dc","map_dc");
@@ -211,8 +219,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         
 	cout<<"run "<<runselection<<" @ system "<<systemselection<<endl;
 
-	// if ( runselection==14 && systemselection==0 ) cut = new Run14AuAuCut();
-
+	
         return 0;
     }
 
@@ -306,23 +313,17 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         if( !trk )
 	  {
 	    std::cout<<"can't find PHCentraltrack "<<std::endl;
-	    return DISCARDEVENT;//exit(1);
+	    return DISCARDEVENT;
 	  }
         
 	emccont = findNode::getClass<emcClusterContainer>(topNode, "emcClusterContainer");
         if( !emccont )
 	  {
             std::cout<<"can't find emcClusterContainer "<<std::endl;
-	    return DISCARDEVENT;//exit(1);
+	    return DISCARDEVENT;
 	  }
 	
-	// rp = findNode::getClass<ReactionPlaneObject>(topNode, "ReactionPlaneObject");
-	// if( !rp )
-	// {
-        //    std::cout<<"can't find ReactionPlaneObject "<<std::endl;
-        //    return DISCARDEVENT;//exit(1);
-	// }
-
+	
         header = findNode::getClass<RunHeader>(topNode,"RunHeader");
         if(!header) cout<<"can't find RunHeader"<<endl;
         
@@ -333,9 +334,9 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
     {
         // Run16@dAu
        
-      // int TRIGGERBIT = 4;
+      // int TRIGGERBIT = 4; AuAu
       // int trigscaled_on = _Trig_ptr->get_lvl1_trigscaled_bit(TRIGGERBIT);     
-      /*
+      
       unsigned int trigger_scaled = _Trig_ptr->get_lvl1_trigscaled();
   
       unsigned int trigger_FVTXNSBBCScentral = 0x00100000;
@@ -343,6 +344,8 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
       unsigned int trigger_BBCLL1narrowcent  = 0x00000008;
       unsigned int trigger_BBCLL1narrow      = 0x00000010;
       unsigned int accepted_triggers = 0;
+      
+      int runnumber=header->get_RunNumber();
       // --- Run16dAu200                                                                                                                          
       if ( runnumber >= 454774 && runnumber <= 455639 ) accepted_triggers = trigger_BBCLL1narrowcent | trigger_BBCLL1narrow;
       // --- Run16dAu62   
@@ -353,12 +356,14 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
       if ( runnumber >= 457634 && runnumber <= 458167 ) accepted_triggers = trigger_FVTXNSBBCScentral | trigger_FVTXNSBBCS;
 
       unsigned int passes_trigger = trigger_scaled & accepted_triggers;
+      cout<<"run selcetion "<<runnumber<<endl;
+      cout<<"trigger_scale "<<trigger_scaled<<"accepted trigger "<<accepted_triggers<<endl;
       if ( passes_trigger == 0 )
 	{
 	  cout << "trigger rejected" << endl;
 	  return 0;
 	}
-      */
+     
       return 1;
     }
 
@@ -491,7 +496,8 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 	  // if (fabs(trk->get_zed(itrk_reco))<Z_GLOBAL )
 	  //if ( trk->get_quality(itrk_reco)==63 && fabs(trk->get_zed(itrk_reco))<Z_GLOBAL )
 	  if (( trk->get_quality(itrk_reco)==63 || trk->get_quality(itrk_reco)==31 || trk->get_quality(itrk_reco)==51)&& fabs(trk->get_zed(itrk_reco))<Z_GLOBAL )
-            {
+	  //if ( trk->get_quality(itrk_reco)==19 || trk->get_quality(itrk_reco)==35)
+	   {
 	      float board = get_board( trk->get_phi(itrk_reco) );
 	      float alpha = trk->get_alpha(itrk_reco);
 	      int arm  = trk->get_dcarm(itrk_reco); // arm 0 <--> e/w not sure yet
@@ -499,9 +505,13 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
 	      map_dc->Fill(1.0, board, alpha, arm, side);
 	      double px = trk->get_px(itrk_reco);
 	      double py = trk->get_py(itrk_reco);
+	      double pz = trk->get_pz(itrk_reco);
 	      double pT = sqrt(px*px + py*py);
+	      double p = sqrt(px*px + py*py+pz*pz);
+	      double theta=0.5*TMath::Pi()/TMath::ACos(pz/p);
 	      dc_phipt->Fill(1.0,alpha,pT,trk->get_phi(itrk_reco),arm,side);
-	    }
+	      dc_zed->Fill(1.0,theta,trk->get_zed(itrk_reco),trk->get_phi(itrk_reco),arm,side);
+	         }
         }
     }
 
@@ -542,6 +552,7 @@ mPhotonEventQA::mPhotonEventQA(const char *outfile) :
         h_nclust->Write();
         h_nemc->Write();
 	dc_phipt->Write();
+	dc_zed->Write();
 
         map_dc->Write();
         map_emc->Write();

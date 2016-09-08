@@ -1,3 +1,4 @@
+
 #ifndef __CINT__
 #include <cstdlib>
 #include <cstring>
@@ -25,9 +26,10 @@ void InputData(vector<string> &indata);
 #endif
 
 void RunMyMacro(const char *modulemacro = "Run_DPRun16dAu.C",  // your anataxi macro name
-                const char *outfile     = "output_test.root",   // <module_name>_<run>-<sequence>.root
-                const int nevnt         = 1000,               // number of events
-                const char *system      = "Run14AuAu200CAMBPro104") // system type
+                const char *outfile     = "QA_check.root",   // <module_name>_<run>-<sequence>.root
+                const int nevnt         = 10000,               // number of events
+                const char *system      = //"Run14AuAu200CAMBPro104")
+		                          "Run16dAu200CAnVXMBP107") // system type
 {
 
   string cntfile = "NONE";
@@ -3027,6 +3029,194 @@ void RunMyMacro(const char *modulemacro = "Run_DPRun16dAu.C",  // your anataxi m
       dst_evefile = "DST_EVE_MU_run15pp_200GeV_CA_pro104-0000430238-9000.root";
     }
 
+  else if (strcmp(system, "Run16dAu60CAnVXMBP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_MB_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+      dst_evefile = "DST_EVE_MB_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+
+      pwg_included = true;
+    }
+  else if (strcmp(system, "Run16dAu60CAnVXERTP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_ERT_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+      dst_evefile = "DST_EVE_ERT_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+
+      pwg_included = true;
+    }
+  else if (strcmp(system, "Run16dAu60CAnVXFVTXP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_FVTX_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+      dst_evefile = "DST_EVE_FVTX_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+
+      pwg_included = true;
+    }
+  else if (strcmp(system, "Run16dAu60CAnVXMPCP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_MPC_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+      dst_evefile = "DST_EVE_MPC_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+
+      pwg_included = true;
+    }
+  else if (strcmp(system, "Run16dAu60CAnVXMUP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_MU_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+      dst_evefile = "DST_EVE_MU_run16dAu_62GeV_CA_noVTX_pro107-0000456107-9000.root";
+
+      pwg_included = true;
+    }
+
+
+  else if (strcmp(system, "Run16dAu200CAnVXMBP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_MB_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+      dst_evefile = "DST_EVE_MB_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+
+      pwg_included = true;
+
+    }
+  else if (strcmp(system, "Run16dAu200CAnVXERTP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_ERT_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+      dst_evefile = "DST_EVE_ERT_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+
+      pwg_included = true;
+
+    }
+  else if (strcmp(system, "Run16dAu200CAnVXFVTXP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_FVTX_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+      dst_evefile = "DST_EVE_FVTX_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+
+      pwg_included = true;
+
+    }
+  else if (strcmp(system, "Run16dAu200CAnVXMPCP107") == 0)
+    {
+      gSystem->Load("libfvtx_subsysreco.so");
+      gSystem->Load("libmutoo_subsysreco");
+      gSystem->Load("libfun4all.so");
+      gSystem->Load("libfun4allfuncs.so");
+      gSystem->Load("libfun4allfuncs_muons");
+      gSystem->Load("libMWGOO");
+      gSystem->Load("libmutrg");
+      gSystem->Load("librpc_subsysreco");
+      gSystem->Load("librpc_muotrackreco");
+      gSystem->Load("libcompactCNT.so");
+      gSystem->Load("librecal");
+      gSystem->Load("libBbcMultipleVtx.so" );
+
+      cntfile = "CNT_MPC_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+      dst_evefile = "DST_EVE_MPC_run16dAu_200GeV_CA_noVTX_pro107-0000455605-9000.root";
+
+      pwg_included = true;
+
+    }
+
+
 
   else if (strcmp(system, "Run15pp200MuonsMBPro104") == 0)
     {
@@ -3415,6 +3605,7 @@ void RunMyMacro(const char *modulemacro = "Run_DPRun16dAu.C",  // your anataxi m
 
       mwgfile = "MWG_MB_run15pAu_200GeV_Muons_pro105-0000435527-9000.root";
       cntfile = "CNT_MB_run15pAu_200GeV_CA_pro104-0000435527-9000.root";
+      dst_svxfile = "DST_SVX_MB_run15pAu_200GeV_CA_pro104-0000435527-9000.root";
       dst_evefile = "DST_EVE_MB_run15pAu_200GeV_CA_pro104-0000435527-9000.root";
       pwg_included = true;
     }
@@ -3560,7 +3751,6 @@ void RunMyMacro(const char *modulemacro = "Run_DPRun16dAu.C",  // your anataxi m
   cout << "running user macro like: " << runmac << endl;
   // execute the user macro
   gROOT->ProcessLine(runmac, &ierror);
-  cout << "cpDONE" << endl;
   if (ierror != TInterpreter::kNoError)
     {
       cout << "Error: could not execute " << runmac << endl;
