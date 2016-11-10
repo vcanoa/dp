@@ -262,10 +262,10 @@ int main(int nvar, char** vars) {
   TTree* T = (TTree*)f1->Get("T");
   TBranch* br = T->GetBranch("PhotonEvent");
   PhotonEvent *event=0;
-  PhotonEvent *preevent=0;
+  PhotonEvent preevent;
   br->SetAddress(&event);
   //============
-  
+  bool existsPre = false;
   int nevt = T->GetEntries();
   for(int i1=0; i1<nevt; ++i1) {
     if(i1%1000 == 0) cout << "Event:  " << i1 << "/" << nevt << endl;
@@ -279,22 +279,23 @@ int main(int nvar, char** vars) {
     int nneg=0, neg[20];
     readgoodtracks(event,npos,nneg,pos,neg, true);
     if((npos+nneg)==0) continue; // discard event, but dont touch previous event
-    if(!preevent) { // setting up previous event for the first time
-      preevent = event;
+    if(!existsPre) { // setting up previous event for the first time
+      existsPre = true;
+      preevent.CloneFrom(event);
       continue;
     }
 
     // ==> Filtering good tracks in previous event <==
     int nprepos=0, prepos[20];
     int npreneg=0, preneg[20];
-    readgoodtracks(preevent,nprepos,npreneg,prepos,preneg);
+    readgoodtracks(&preevent,nprepos,npreneg,prepos,preneg);
     
     // ==> Making pairs <==
     CNTE *track1, *track2;
     for(int ip=0; ip<npos; ++ip) {
       track1 = event->GetPtrack( pos[ip] ); // getting one good positive track from this event
       for(int jn=0; jn<npreneg; ++jn) {
-	track2 = preevent->GetNtrack( preneg[jn] ); // getting one good negative track from previous event
+	track2 = preevent.GetNtrack( preneg[jn] ); // getting one good negative track from previous event
 	if( track1->GetDCarm()!=track2->GetDCarm() ) continue;
 	BuildPair(track1,track2,&reco,zVtx);
       }
@@ -302,11 +303,12 @@ int main(int nvar, char** vars) {
     for(int in=0; in<nneg; ++in) {
       track2 = event->GetNtrack( neg[in] ); // getting one good negative track from this event
       for(int jp=0; jp<nprepos; ++jp) {
-	track1 = preevent->GetPtrack( prepos[jp] ); // getting one good positive track from previous event
+	track1 = preevent.GetPtrack( prepos[jp] ); // getting one good positive track from previous event
 	if( track1->GetDCarm()!=track2->GetDCarm() ) continue;
 	BuildPair(track1,track2,&reco,zVtx);
       }
     }
+    preevent.CloneFrom(event);
   }
   f1->Close();
 

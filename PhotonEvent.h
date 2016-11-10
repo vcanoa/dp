@@ -26,8 +26,10 @@ class PhotonEvent {
 
  public:
   PhotonEvent();
+  PhotonEvent(const PhotonEvent &source);
   virtual ~PhotonEvent();
   
+  void CloneFrom(PhotonEvent *source);
   void Clear();
   
   void SetRunNumber(int val)    { fRun = val; };
